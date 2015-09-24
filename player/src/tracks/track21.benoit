@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<!DOCTYPE boost_serialization>
+<boost_serialization signature="serialization::archive" version="9">
+<track class_id="0" tracking_level="0" version="0">
+	<fractal_spec class_id="1" tracking_level="0" version="0">
+		<center_r>-0.70024170070240843</center_r>
+		<center_i>-0.26508919693469957</center_i>
+		<bailout>2000</bailout>
+		<zoom_begin>1.5</zoom_begin>
+		<zoom_end>1.5728640000000024e-014</zoom_end>
+	</fractal_spec>
+	<temporal_palette class_id="2" tracking_level="0" version="0">
+		<temporal_keys class_id="3" tracking_level="0" version="0">
+			<count>2</count>
+			<item_version>0</item_version>
+			<item class_id="4" tracking_level="0" version="0">
+				<pos>0.5884297520661157</pos>
+				<spatial_keys class_id="5" tracking_level="0" version="0">
+					<count>5</count>
+					<item_version>0</item_version>
+					<item class_id="6" tracking_level="0" version="0">
+						<pos>0.22644628099173553</pos>
+						<color class_id="7" tracking_level="0" version="0">
+							<red>0</red>
+							<green>0</green>
+							<blue>0</blue>
+						</color>
+					</item>
+					<item>
+						<pos>0.39173553719008264</pos>
+						<color>
+							<red>146</red>
+							<green>10</green>
+							<blue>141</blue>
+						</color>
+					</item>
+					<item>
+						<pos>0.55371900826446285</pos>
+						<color>
+							<red>193</red>
+							<green>115</green>
+							<blue>68</blue>
+						</color>
+					</item>
+					<item>
+						<pos>0.70082644628099178</pos>
+						<color>
+							<red>239</red>
+							<green>237</green>
+							<blue>138</blue>
+						</color>
+					</item>
+					<item>
+						<pos>0.91570247933884297</pos>
+						<color>
+							<red>120</red>
+							<green>190</green>
+							<blue>83</blue>
+						</color>
+					</item>
+				</spatial_keys>
+			</item>
+			<item>
+				<pos>0.47438016528925619</pos>
+				<spatial_keys>
+					<count>5</count>
+					<item_version>0</item_version>
+					<item>
+						<pos>0.090909090909090912</pos>
+						<color>
+							<red>0</red>
+							<green>0</green>
+							<blue>0</blue>
+						</color>
+					</item>
+					<item>
+						<pos>0.36859504132231408</pos>
+						<color>
+							<red>120</red>
+							<green>190</green>
+							<blue>83</blue>
+						</color>
+					</item>
+					<item>
+						<pos>0.17024793388429751</pos>
+						<color>
+							<red>193</red>
+							<green>115</green>
+							<blue>68</blue>
+						</color>
+					</item>
+					<item>
+						<pos>0.13719008264462809</pos>
+						<color>
+							<red>146</red>
+							<green>10</green>
+							<blue>141</blue>
+						</color>
+					</item>
+					<item>
+						<pos>0.20949999999999999</pos>
+						<color>
+							<red>239</red>
+							<green>237</green>
+							<blue>138</blue>
+						</color>
+					</item>
+				</spatial_keys>
+			</item>
+		</temporal_keys>
+	</temporal_palette>
+</track>
+</boost_serialization>
+
