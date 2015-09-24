@@ -18,6 +18,7 @@ LIBS += -lboost_program_options
 LIBS += -lboost_system
 LIBS += -lboost_filesystem
 LIBS += -lboost_serialization
+LIBS += -lboost_thread
 LIBS += -lGLEW
 LIBS += -lglut
 LIBS += -lGL
@@ -33,7 +34,8 @@ NVCCFLAGS := -O3 -arch=sm_30
 CXXFLAGS := -O3 -g
 
 CPP_SOURCES := $(wildcard *.cpp)
-CPP_SOURCES += ../../editor/track/track.cpp
+CPP_SOURCES += ../../track/track.cpp
+#../../editor/track/track.cpp
 CU_SOURCES := $(wildcard *.cu)
 HEADERS := $(wildcard *.h)
 CPP_OBJS := $(patsubst %.cpp, %.o, $(CPP_SOURCES))

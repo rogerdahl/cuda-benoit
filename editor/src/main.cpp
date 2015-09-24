@@ -1,4 +1,4 @@
-`// Benoit Track Editor. 2011. dahlsys.com
+// Benoit Track Editor. 2011. dahlsys.com
 // http://www.dahlsys.com/software/benoit/index.html
 // License: GPL.
 //
@@ -12,8 +12,8 @@
 #include "pch.h"
 
 #include "bailout_dlg.h"
-#include "../palette_ctrl/palette_ctrl.h"
-#include "../render_ctrl/render_ctrl.h"
+#include "palette_ctrl.h"
+#include "render_ctrl.h"
 #include "../track/track.h"
 
 using namespace std;
@@ -222,6 +222,7 @@ bool MyApp::OnInit() {
   frame_ = new MyFrame(g_app_name);
   frame_->Show(TRUE);
   return TRUE;
+  cout << "here" << endl;
 }
 
 //void MyApp::on_char(wxKeyEvent& event) {
@@ -241,7 +242,7 @@ MyFrame::MyFrame(const wxString& title)
 unsaved_changes_(false)
 {
   // Set the frame icon.
-  SetIcon(wxICON(mondrian));
+  /////////////////////////////////SetIcon(wxICON(mondrian));
 
   // Create a menu bar.
   wxMenu* file_menu(new wxMenu);
@@ -352,7 +353,8 @@ unsaved_changes_(false)
 
   // Set default supersample and calculation method. Default bailout is stored
   // in track.
-  OnSuperSample3(wxCommandEvent());
+  wxCommandEvent event;
+  OnSuperSample3(event);
 
   // Check if CUDA capable device is present.
 	int cuda_device_count;
@@ -362,13 +364,13 @@ unsaved_changes_(false)
     calculation_menu->Enable(kCalcMethodCUDAFloat, false);
     calculation_menu->Enable(kCalcMethodCUDADouble, false);
     // Set initial calculation method to x86 double.
-    OnCalcMethodx86Double(wxCommandEvent());
+    OnCalcMethodx86Double(event);
   }
   else {
     // Found a CUDA capable device. Set the default calculation to using CUDA
     // doubles. Note, on a machine with a fast CPU and a slow GPU, this may be
     // slower than than using the CPU.
-    OnCalcMethodCUDADouble(wxCommandEvent());
+    OnCalcMethodCUDADouble(event);
   }
 
   // Set track name and changed status in title.
@@ -540,17 +542,19 @@ void MyFrame::OnFractalPosChange(wxScrollEvent& event) {
 void MyFrame::SetTrackStatus(bool unsaved_changes, wpath track_path) {
   unsaved_changes_ = unsaved_changes;
   track_path_ = track_path;
-  // Update the window title with the track status.
-  SetTitle(wxString::Format(L"%s %s - %s",
-    (unsaved_changes_ ? L"*" : L""),
-    (track_path_.empty() ? L"new" : track_path_.stem().c_str()),
-    g_app_name));
+  //// Update the window title with the track status.
+  //SetTitle(wxString::Format("%s %s - %s",
+  //  (unsaved_changes_ ? "*" : ""),
+  //  (track_path_.empty() ? "new" : track_path_.stem().c_str()),
+  //  g_app_name));
+  SetTitle(wxString(L"fixme"));
 }
 
 void MyFrame::UnsavedChanges() {
   if (unsaved_changes_) {
     if (wxMessageBox(L"Save changes?", L"Unsaved changes", wxYES_NO, this) == wxYES) {
-      OnSave(wxCommandEvent());
+      wxCommandEvent event;
+      OnSave(event);
     }
   }
 }
@@ -571,8 +575,9 @@ void MyFrame::Refresh() {
   render_ctrl_->Init();
   render_ctrl_->SetSuperSample(supersample);
   render_ctrl_->SetCalcMethod(calc_method);
-  OnHideGflops(wxCommandEvent());
-  OnDrawOnlyAtEnd(wxCommandEvent());
+  wxCommandEvent event;
+  OnHideGflops(event);
+  OnDrawOnlyAtEnd(event);
   // Reset the TemporalPaletteCtrl.
   temporal_palette_ctrl_->Init();
 	render_ctrl_->SetPalette(temporal_palette_ctrl_->GetColorArray(0.0, render_ctrl_->GetBailout()));
@@ -591,7 +596,8 @@ void MyFrame::OnPaletteHasChanged(PaletteEvent& event) {
   // Get palette for new position and update the RenderCtrl palette.
   render_ctrl_->SetPalette(temporal_palette_ctrl_->GetColorArray(pos_norm, render_ctrl_->GetBailout()));
   zoom_pos_slider_->SetValue(temporal_palette_ctrl_->GetFocusedTemporalKeyPos() * max_pos);
-  OnFractalPosChange(wxScrollEvent());
+  wxScrollEvent event2;
+  OnFractalPosChange(event2);
   SetTrackStatus(true, track_path_);
 }
 

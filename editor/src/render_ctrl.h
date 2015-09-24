@@ -11,7 +11,7 @@ using namespace std;
 
 #include "int_types.h"
 
-#include "../palette_ctrl/palette_ctrl.h"
+#include "palette_ctrl.h"
 #include "../track/track.h"
 #include "calc.h"
 

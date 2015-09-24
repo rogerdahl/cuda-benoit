@@ -7,6 +7,7 @@
 using namespace std;
 using namespace boost;
 
+#include <time.h> // nanosleep
 
 // Config.
 
@@ -15,6 +16,7 @@ using namespace boost;
 // ---------------------------------------------------------------------------
 
 // Packed doubles (2x 64 bit doubles), SSE2, assembly, x64 only.
+#ifdef _WIN64
 void MandelbrotLineSSE2x64(u32* fractal_buf_, u32 width, u32 y, double cr1, double cr2, double ci, u32 bailout) {
   u32 line_offset(width * y);
 
@@ -27,6 +29,7 @@ void MandelbrotLineSSE2x64(u32* fractal_buf_, u32 width, u32 y, double cr1, doub
     fractal_buf_[line_offset++] = q >> 32;
   }
 }
+#endif
 
 // Float and double (1x 32 bit or 80/64 bit), C++, x86 (works on x64).
 template <typename FP>
@@ -53,6 +56,7 @@ void MandelbrotLineFP(u32* fractal_buf_, u32 width, u32 y, FP cr1, FP cr2, FP ci
   }
 }
 
+#ifdef _WIN64
 
 // Packed floats (4x 32 bit floats), C++ with intrinsics, x86 (works on x64).
 //
@@ -156,6 +160,8 @@ void MandelbrotLineSSE2x86Intrinsics(u32* fractal_buf_, u32 width, u32 y,
 #pragma warning(pop)
 #pragma runtime_checks("u", restore) 
 
+#endif
+
 struct ThreadShared {
   ThreadShared() : stop_(false), running_(false) {}
 
@@ -242,6 +248,8 @@ struct CalcThread {
       }
     }
 
+#ifdef _WIN64
+
     if (calc_method_ == kCalcSSE4Float) {
 #ifndef _DEBUG
 #pragma omp parallel private(y)
@@ -254,6 +262,10 @@ struct CalcThread {
         }
       }
     }
+
+#endif
+
+#ifdef _WIN64
 
     if (calc_method_ == kCalcSSE2Double) {
 #ifndef _DEBUG
@@ -268,6 +280,8 @@ struct CalcThread {
       }
     }
 
+#endif
+    
     // For CUDA, we calculate a certain number of lines at a time. If
     // supersample_ is >1, this does not correspond to the number of lines on
     // screen. When setting this, we want to balance a good GPU thread count
@@ -430,7 +444,8 @@ void Calc::StopThread() {
   if (thread_shared_) {
     thread_shared_->Stop();
     while (thread_shared_->IsRunning()) {
-      Sleep(100);
+      //Sleep(100);
+      //nanosleep(1000000);
     }
   }
 

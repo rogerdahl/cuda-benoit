@@ -2,7 +2,7 @@
 
 // App.
 #include "palette_ctrl.h"
-#include "../editor/utils.h"
+#include "utils.h"
 
 using namespace std;
 using namespace boost;
