@@ -7,7 +7,10 @@
 using namespace std;
 using namespace boost;
 
+#include <stdlib.h>
 #include <time.h> // nanosleep
+
+
 
 // Config.
 
@@ -444,8 +447,7 @@ void Calc::StopThread() {
   if (thread_shared_) {
     thread_shared_->Stop();
     while (thread_shared_->IsRunning()) {
-      //Sleep(100);
-      //nanosleep(1000000);
+      boost::this_thread::sleep(boost::posix_time::milliseconds(100));
     }
   }
 

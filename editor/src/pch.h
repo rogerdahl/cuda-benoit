@@ -50,6 +50,8 @@
 #include <boost/random/variate_generator.hpp>
 #include <boost/thread.hpp>
 #include <boost/timer.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/thread/thread.hpp>
 
 // OpenMP.
 #include <omp.h>
