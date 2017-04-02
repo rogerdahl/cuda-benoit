@@ -70,7 +70,7 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  // Read the *.benoit tracks from the tracks folder into a static structure.
+  // Read the *.doc tracks from the tracks folder into a static structure.
   StaticTracks* static_tracks(ReadAllTracks());
   if (!static_tracks->count_) {
     cout << "No tracks found" << endl;

@@ -387,7 +387,7 @@ MyFrame::MyFrame(const wxString& title)
   // Set track name and changed status in title.
   SetTrackStatus(false, L"");
 
-  // If the app has been associated with the .benoit file type, the path appears
+  // If the app has been associated with the .doc file type, the path appears
   // as the first argument when the app is opened by double clicking a track
   // file.
   if (wxTheApp->argc > 1) {
@@ -513,7 +513,7 @@ void MyFrame::OnOpen(wxCommandEvent& event)
 {
   UnsavedChanges();
   wxFileDialog d(
-      this, L"Open track", L"", L"track.benoit", L"*.benoit", wxFD_OPEN);
+      this, L"Open track", L"", L"track.doc", L"*.doc", wxFD_OPEN);
   if (d.ShowModal() != wxID_OK) {
     return;
   }
@@ -537,7 +537,7 @@ void MyFrame::OnSave(wxCommandEvent& event)
 void MyFrame::OnSaveAs(wxCommandEvent& event)
 {
   wxFileDialog d(
-      this, L"Save track", L"", L"track.benoit", L"*.benoit", wxFD_SAVE);
+      this, L"Save track", L"", L"track.doc", L"*.doc", wxFD_SAVE);
   if (d.ShowModal() != wxID_OK) {
     return;
   }

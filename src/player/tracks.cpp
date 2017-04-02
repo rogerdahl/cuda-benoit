@@ -34,7 +34,7 @@ StaticTracks* ReadTracks(const path& track_dir_path)
            << endl;
       break;
     }
-    if (is_regular_file(*itr) && itr->path().extension() == ".benoit") {
+    if (is_regular_file(*itr) && itr->path().extension() == ".doc") {
       try {
         TrackToStatic(*itr, tracks->tracks_[track_idx++]);
       } catch (std::exception&) {
