@@ -2,47 +2,47 @@
 
 #if 0
 
-#include <windows.h>
 #include "cpuid.h"
+#include <windows.h>
 
 
 // These are the bit flags that get set on calling cpuid
 // with register eax set to 1
-#define _MMX_FEATURE_BIT        0x00800000
-#define _SSE_FEATURE_BIT        0x02000000
-#define _SSE2_FEATURE_BIT       0x04000000
+#define _MMX_FEATURE_BIT 0x00800000
+#define _SSE_FEATURE_BIT 0x02000000
+#define _SSE2_FEATURE_BIT 0x04000000
 
 // This bit is set when cpuid is called with
 // register set to 80000001h (only applicable to AMD)
-#define _3DNOW_FEATURE_BIT      0x80000000
+#define _3DNOW_FEATURE_BIT 0x80000000
 
 // These are the names of the various processors
-#define PROC_AMD_AM486          "AMD Am486"
-#define PROC_AMD_K5             "AMD K5"
-#define PROC_AMD_K6             "AMD K6"
-#define PROC_AMD_K6_2           "AMD K6-2"
-#define PROC_AMD_K6_3           "AMD K6-3"
-#define PROC_AMD_ATHLON         "AMD Athlon"
-#define PROC_INTEL_486DX        "INTEL 486DX"
-#define PROC_INTEL_486SX        "INTEL 486SX"
-#define PROC_INTEL_486DX2       "INTEL 486DX2"
-#define PROC_INTEL_486SL        "INTEL 486SL"
-#define PROC_INTEL_486SX2       "INTEL 486SX2"
-#define PROC_INTEL_486DX2E      "INTEL 486DX2E"
-#define PROC_INTEL_486DX4       "INTEL 486DX4"
-#define PROC_INTEL_PENTIUM      "INTEL Pentium"
-#define PROC_INTEL_PENTIUM_MMX  "INTEL Pentium-MMX"
-#define PROC_INTEL_PENTIUM_PRO  "INTEL Pentium-Pro"
-#define PROC_INTEL_PENTIUM_II   "INTEL Pentium-II"
-#define PROC_INTEL_CELERON      "INTEL Celeron"
-#define PROC_INTEL_PENTIUM_III  "INTEL Pentium-III"
-#define PROC_INTEL_PENTIUM_4    "INTEL Pentium-4"
-#define PROC_CYRIX              "Cyrix"
-#define PROC_CENTAUR            "Centaur"
-#define PROC_UNKNOWN            "Unknown"
+#define PROC_AMD_AM486 "AMD Am486"
+#define PROC_AMD_K5 "AMD K5"
+#define PROC_AMD_K6 "AMD K6"
+#define PROC_AMD_K6_2 "AMD K6-2"
+#define PROC_AMD_K6_3 "AMD K6-3"
+#define PROC_AMD_ATHLON "AMD Athlon"
+#define PROC_INTEL_486DX "INTEL 486DX"
+#define PROC_INTEL_486SX "INTEL 486SX"
+#define PROC_INTEL_486DX2 "INTEL 486DX2"
+#define PROC_INTEL_486SL "INTEL 486SL"
+#define PROC_INTEL_486SX2 "INTEL 486SX2"
+#define PROC_INTEL_486DX2E "INTEL 486DX2E"
+#define PROC_INTEL_486DX4 "INTEL 486DX4"
+#define PROC_INTEL_PENTIUM "INTEL Pentium"
+#define PROC_INTEL_PENTIUM_MMX "INTEL Pentium-MMX"
+#define PROC_INTEL_PENTIUM_PRO "INTEL Pentium-Pro"
+#define PROC_INTEL_PENTIUM_II "INTEL Pentium-II"
+#define PROC_INTEL_CELERON "INTEL Celeron"
+#define PROC_INTEL_PENTIUM_III "INTEL Pentium-III"
+#define PROC_INTEL_PENTIUM_4 "INTEL Pentium-4"
+#define PROC_CYRIX "Cyrix"
+#define PROC_CENTAUR "Centaur"
+#define PROC_UNKNOWN "Unknown"
 
 // This is the maximum length of the vendor name
-#define MAX_VNAME_LENGTH        12
+#define MAX_VNAME_LENGTH 12
 	
 int IsCPUID()
 {
@@ -100,7 +100,7 @@ int _os_support(int feature)
             break;
         }
     }
-	#pragma warning (suppress: 6320)
+#pragma warning(suppress : 6320)
     __except (EXCEPTION_EXECUTE_HANDLER) {
         if (_exception_code() == STATUS_ILLEGAL_INSTRUCTION) {
             return 0;

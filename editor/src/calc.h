@@ -1,7 +1,8 @@
-#include "int_types.h"
 #include "../track/track.h"
+#include "int_types.h"
 
-enum CalcMethods {
+enum CalcMethods
+{
   kCalcx86Float,
   kCalcx86Double,
   kCalcSSE4Float,
@@ -11,8 +12,9 @@ enum CalcMethods {
 };
 
 struct ThreadShared;
-  
-class Calc {
+
+class Calc
+{
   FractalSpec& fractal_spec_;
   ThreadShared* thread_shared_;
   u32* fractal_buf_;
@@ -28,7 +30,7 @@ class Calc {
   void StartThread();
   void StopThread();
 
-public:
+  public:
   Calc(FractalSpec&);
   ~Calc();
   void Init();
@@ -49,8 +51,8 @@ public:
   void SetCalcMethod(CalcMethods);
   CalcMethods GetCalcMethod();
 
-  void GetTranslatedCoordinates(double* cr1, double* cr2, double* ci1, double* ci2);
+  void GetTranslatedCoordinates(
+      double* cr1, double* cr2, double* ci1, double* ci2);
   u32* GetFractalBuf();
   bool IsRunning();
 };
-

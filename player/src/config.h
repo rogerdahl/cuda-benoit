@@ -1,6 +1,7 @@
 #pragma once
 
-struct Configuration {
+struct Configuration
+{
   s32 device_;
   bool vsync_;
   u32 vsync_interval_;

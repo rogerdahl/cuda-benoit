@@ -1,16 +1,14 @@
 #include "pch.h"
 
-#include "sse2_x64_mandelbrot.h"
-#include "mandelbrot_kernel.h"
 #include "calc.h"
+#include "mandelbrot_kernel.h"
+#include "sse2_x64_mandelbrot.h"
 
 using namespace std;
 using namespace boost;
 
 #include <stdlib.h>
 #include <time.h> // nanosleep
-
-
 
 // Config.
 
@@ -20,7 +18,10 @@ using namespace boost;
 
 // Packed doubles (2x 64 bit doubles), SSE2, assembly, x64 only.
 #ifdef _WIN64
-void MandelbrotLineSSE2x64(u32* fractal_buf_, u32 width, u32 y, double cr1, double cr2, double ci, u32 bailout) {
+void MandelbrotLineSSE2x64(
+    u32* fractal_buf_, u32 width, u32 y, double cr1, double cr2, double ci,
+    u32 bailout)
+{
   u32 line_offset(width * y);
 
   u32 g(0);
@@ -36,14 +37,16 @@ void MandelbrotLineSSE2x64(u32* fractal_buf_, u32 width, u32 y, double cr1, doub
 
 // Float and double (1x 32 bit or 80/64 bit), C++, x86 (works on x64).
 template <typename FP>
-void MandelbrotLineFP(u32* fractal_buf_, u32 width, u32 y, FP cr1, FP cr2, FP ci, u32 bailout) {
+void MandelbrotLineFP(
+    u32* fractal_buf_, u32 width, u32 y, FP cr1, FP cr2, FP ci, u32 bailout)
+{
   u32 line_offset(width * y);
 
   for (u32 x(0); x < width; ++x) {
     FP cr((FP)x / (FP)width * (cr2 - cr1) + cr1);
     FP zi(0), zr(0), zr2(0), zi2(0), zit(0);
     u32 iter(bailout);
-    while(--iter && zr2 + zi2 < 4.0) {
+    while (--iter && zr2 + zi2 < 4.0) {
       zit = zr * zi;
       zi = zit + zit + ci;
       zr = (zr2 - zi2) + cr;
@@ -70,13 +73,14 @@ void MandelbrotLineFP(u32* fractal_buf_, u32 width, u32 y, FP cr1, FP cr2, FP ci
 // this function.
 #pragma warning(push)
 // C4700: uninitialized local variable used.
-#pragma warning(disable: 4700)
+#pragma warning(disable : 4700)
 // u: Reports when a variable is used before it is defined.
-#pragma runtime_checks("u", off )
+#pragma runtime_checks("u", off)
 
-void MandelbrotLineSSE2x86Intrinsics(u32* fractal_buf_, u32 width, u32 y,
-                                   double cr1, double cr2, double ci,
-                                   u32 bailout) {
+void MandelbrotLineSSE2x86Intrinsics(
+    u32* fractal_buf_, u32 width, u32 y, double cr1, double cr2, double ci,
+    u32 bailout)
+{
   u32 line_offset(y * width);
 
   u32 xx;
@@ -143,82 +147,96 @@ void MandelbrotLineSSE2x86Intrinsics(u32* fractal_buf_, u32 width, u32 y,
         mask = _mm_movemask_ps(tmp128);
         if ((mask | mmask) != 15)
           break;
-      } while(min2go);
+      } while (min2go);
 
       if (!min2go)
         mask = 0;
 
       for (maskN = 0; maskN < 4; ++maskN) {
         if (((mask | mmask) & (1 << maskN)) == 0) {
-          fractal_buf_[line_offset + xx + maskN] = min2go ? bailout - min2go : 0;
+          fractal_buf_[line_offset + xx + maskN] =
+              min2go ? bailout - min2go : 0;
           mmask = mmask | (1 << maskN);
         }
       }
-    } while(mmask != 15);
+    } while (mmask != 15);
   }
 
   return;
 }
 
 #pragma warning(pop)
-#pragma runtime_checks("u", restore) 
+#pragma runtime_checks("u", restore)
 
 #endif
 
-struct ThreadShared {
-  ThreadShared() : stop_(false), running_(false) {}
+struct ThreadShared
+{
+  ThreadShared() : stop_(false), running_(false)
+  {
+  }
 
   // For use by master.
 
-  void Stop() {
+  void Stop()
+  {
     stop_ = true;
   }
 
-  void SetRunning() {
+  void SetRunning()
+  {
     running_ = true;
   }
 
-  bool IsRunning() {
+  bool IsRunning()
+  {
     return running_;
   }
 
   // For use by slave.
 
-  void ClearRunning() {
+  void ClearRunning()
+  {
     running_ = false;
   }
 
-  volatile bool IsStopping() {
+  volatile bool IsStopping()
+  {
     return stop_;
   }
 
-  void New() {
+  void New()
+  {
     stop_ = false;
     running_ = false;
   }
 
-private:
+  private:
   bool stop_;
   bool running_;
 };
 
-struct CalcThread {
-  CalcThread(ThreadShared* ThreadShared, u32* fractal_buf, u32 width,
-              u32 height, double cr1, double cr2, double ci1, double ci2,
-              CalcMethods calc_method, u32 bailout)
+struct CalcThread
+{
+  CalcThread(
+      ThreadShared* ThreadShared, u32* fractal_buf, u32 width, u32 height,
+      double cr1, double cr2, double ci1, double ci2, CalcMethods calc_method,
+      u32 bailout)
     : thread_shared_(ThreadShared),
-    fractal_buf_(fractal_buf),
-    width_(width),
-    height_(height),
-    cr1_(cr1),
-    cr2_(cr2),
-    ci1_(ci1),
-    ci2_(ci2),
-    bailout_(bailout),
-    calc_method_(calc_method) 
-  { }
+      fractal_buf_(fractal_buf),
+      width_(width),
+      height_(height),
+      cr1_(cr1),
+      cr2_(cr2),
+      ci1_(ci1),
+      ci2_(ci2),
+      bailout_(bailout),
+      calc_method_(calc_method)
+  {
+  }
 
-  void operator()() {
+  void operator()()
+  {
     // OpenMP requires y to be signed.
     s32 y;
 
@@ -232,8 +250,9 @@ struct CalcThread {
       for (y = 0; y < static_cast<s32>(height_); ++y) {
         if (!thread_shared_->IsStopping()) {
           double ci((double)y / (double)height_ * (ci2_ - ci1_) + ci1_);
-          MandelbrotLineFP<float>(fractal_buf_, width_, y, static_cast<float>(cr1_),
-            static_cast<float>(cr2_), static_cast<float>(ci), bailout_);
+          MandelbrotLineFP<float>(
+              fractal_buf_, width_, y, static_cast<float>(cr1_),
+              static_cast<float>(cr2_), static_cast<float>(ci), bailout_);
         }
       }
     }
@@ -246,7 +265,8 @@ struct CalcThread {
       for (y = 0; y < static_cast<s32>(height_); ++y) {
         if (!thread_shared_->IsStopping()) {
           double ci((double)y / (double)height_ * (ci2_ - ci1_) + ci1_);
-          MandelbrotLineFP<double>(fractal_buf_, width_, y, cr1_, cr2_, ci, bailout_);
+          MandelbrotLineFP<double>(
+              fractal_buf_, width_, y, cr1_, cr2_, ci, bailout_);
         }
       }
     }
@@ -261,7 +281,8 @@ struct CalcThread {
       for (y = 0; y < static_cast<s32>(height_); ++y) {
         if (!thread_shared_->IsStopping()) {
           double ci((double)y / (double)height_ * (ci2_ - ci1_) + ci1_);
-          MandelbrotLineSSE2x86Intrinsics(fractal_buf_, width_, y, cr1_, cr2_, ci, bailout_);
+          MandelbrotLineSSE2x86Intrinsics(
+              fractal_buf_, width_, y, cr1_, cr2_, ci, bailout_);
         }
       }
     }
@@ -278,13 +299,14 @@ struct CalcThread {
       for (y = 0; y < static_cast<s32>(height_); ++y) {
         if (!thread_shared_->IsStopping()) {
           double ci((double)y / (double)height_ * (ci2_ - ci1_) + ci1_);
-          MandelbrotLineSSE2x64(fractal_buf_, width_, y, cr1_, cr2_, ci, bailout_);
+          MandelbrotLineSSE2x64(
+              fractal_buf_, width_, y, cr1_, cr2_, ci, bailout_);
         }
       }
     }
 
 #endif
-    
+
     // For CUDA, we calculate a certain number of lines at a time. If
     // supersample_ is >1, this does not correspond to the number of lines on
     // screen. When setting this, we want to balance a good GPU thread count
@@ -298,7 +320,9 @@ struct CalcThread {
           if (y + lines > height_) {
             l = height_ - y;
           }
-          MandelbrotLineCUDA(fractal_buf_, width_, height_, y, cr1_, cr2_, ci1_, ci2_, bailout_, false, l);
+          MandelbrotLineCUDA(
+              fractal_buf_, width_, height_, y, cr1_, cr2_, ci1_, ci2_,
+              bailout_, false, l);
         }
       }
     }
@@ -311,7 +335,9 @@ struct CalcThread {
           if (y + lines > height_) {
             l = height_ - y;
           }
-          MandelbrotLineCUDA(fractal_buf_, width_, height_, y, cr1_, cr2_, ci1_, ci2_, bailout_, true, l);
+          MandelbrotLineCUDA(
+              fractal_buf_, width_, height_, y, cr1_, cr2_, ci1_, ci2_,
+              bailout_, true, l);
         }
       }
     }
@@ -331,13 +357,12 @@ struct CalcThread {
   CalcMethods calc_method_;
 };
 
-
 // ---------------------------------------------------------------------------
 // Controller class.
 // ---------------------------------------------------------------------------
 
-Calc::Calc(FractalSpec& fractal_spec) :
-  fractal_spec_(fractal_spec), fractal_buf_(0), cuda_available_(false)
+Calc::Calc(FractalSpec& fractal_spec)
+  : fractal_spec_(fractal_spec), fractal_buf_(0), cuda_available_(false)
 {
   thread_shared_ = new ThreadShared;
   cuda_available_ = GPUInit(0);
@@ -352,7 +377,8 @@ Calc::~Calc()
   delete thread_shared_;
 }
 
-void Calc::Init() {
+void Calc::Init()
+{
   StopThread();
   zoom_ = fractal_spec_.zoom_end_;
   // By default, we set the calculation method to one that is supported by all
@@ -362,65 +388,76 @@ void Calc::Init() {
   height_ = 0;
 }
 
-u32* Calc::GetFractalBuf() {
+u32* Calc::GetFractalBuf()
+{
   return fractal_buf_;
 }
 
-void Calc::SetDim(u32 width, u32 height) {
+void Calc::SetDim(u32 width, u32 height)
+{
   StopThread();
   width_ = width;
   height_ = height;
   StartThread();
 }
 
-void Calc::GetDim(u32& width, u32& height) {
+void Calc::GetDim(u32& width, u32& height)
+{
   width = width_;
   height = height_;
 }
 
-void Calc::SetCenter(double center_r, double center_i) {
+void Calc::SetCenter(double center_r, double center_i)
+{
   StopThread();
   fractal_spec_.center_r_ = center_r;
   fractal_spec_.center_i_ = center_i;
   StartThread();
 }
 
-void Calc::SetZoom(double zoom) {
+void Calc::SetZoom(double zoom)
+{
   StopThread();
   zoom_ = zoom;
   StartThread();
 }
 
-double Calc::GetZoom() {
+double Calc::GetZoom()
+{
   return zoom_;
 }
 
-void Calc::SetBailout(u32 bailout) {
+void Calc::SetBailout(u32 bailout)
+{
   StopThread();
   fractal_spec_.bailout_ = bailout;
   StartThread();
 }
 
-u32 Calc::GetBailout() {
+u32 Calc::GetBailout()
+{
   return fractal_spec_.bailout_;
 }
 
-void Calc::SetCalcMethod(CalcMethods calc_method) {
+void Calc::SetCalcMethod(CalcMethods calc_method)
+{
   StopThread();
   // Disable selection of CUDA based calculation if CUDA initialization failed.
-  if (!cuda_available_ &&
-      (calc_method == kCalcCUDAFloat || calc_method == kCalcCUDADouble)) {
+  if (!cuda_available_
+      && (calc_method == kCalcCUDAFloat || calc_method == kCalcCUDADouble)) {
     calc_method = kCalcx86Double;
   }
   calc_method_ = calc_method;
   StartThread();
 }
 
-CalcMethods Calc::GetCalcMethod() {
+CalcMethods Calc::GetCalcMethod()
+{
   return calc_method_;
 }
 
-void Calc::StartThread() {
+void Calc::StartThread()
+{
   // Ignore if we don't have all neccessary parameters.
   if (!width_ || !height_) {
     return;
@@ -439,11 +476,14 @@ void Calc::StartThread() {
   GetTranslatedCoordinates(&cr1, &cr2, &ci1, &ci2);
 
   // Start calculation in separate thread.
-  CalcThread c(thread_shared_, fractal_buf_, width_, height_, cr1, cr2, ci1, ci2, calc_method_, fractal_spec_.bailout_);
+  CalcThread c(
+      thread_shared_, fractal_buf_, width_, height_, cr1, cr2, ci1, ci2,
+      calc_method_, fractal_spec_.bailout_);
   thread tr(c);
 }
 
-void Calc::StopThread() {
+void Calc::StopThread()
+{
   if (thread_shared_) {
     thread_shared_->Stop();
     while (thread_shared_->IsRunning()) {
@@ -458,7 +498,9 @@ void Calc::StopThread() {
   }
 }
 
-void Calc::GetTranslatedCoordinates(double* cr1, double* cr2, double* ci1, double* ci2) {
+void Calc::GetTranslatedCoordinates(
+    double* cr1, double* cr2, double* ci1, double* ci2)
+{
   // Translate (center + zoom) to (upper left + lower right)
   *cr1 = fractal_spec_.center_r_ - zoom_;
   *cr2 = fractal_spec_.center_r_ + zoom_;
@@ -467,6 +509,7 @@ void Calc::GetTranslatedCoordinates(double* cr1, double* cr2, double* ci1, doubl
   *ci2 = fractal_spec_.center_i_ + (zoom_ / aspect_ratio);
 }
 
-bool Calc::IsRunning() {
+bool Calc::IsRunning()
+{
   return thread_shared_->IsRunning();
 }

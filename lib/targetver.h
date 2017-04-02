@@ -10,11 +10,11 @@
 // This will cause (JIT) debugging to be invoked at the point of the crash,
 // instead of translating it into a C++ exception. It might be useful to inspect
 // *this at the point of the crash (if the crash does in fact happen at the same
-// place you're seeing the exception above). 
+// place you're seeing the exception above).
 //#include <boost/python/test/module_tail.cpp>
 
 // Minimum required platform is Windows 2000
-#ifndef WINVER                          
+#ifndef WINVER
 #define WINVER 0x0500
 #endif
 #ifndef _WIN32_WINNT
@@ -26,7 +26,7 @@
 
 // Minimum required browser is Internet Explorer 5.0. (I don't think we care,
 // but we set it to tie up potential loose ends).
-#ifndef _WIN32_IE                       
+#ifndef _WIN32_IE
 #define _WIN32_IE 0x0500
 #endif
 

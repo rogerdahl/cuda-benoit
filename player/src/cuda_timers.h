@@ -2,7 +2,8 @@
 
 #include "../../lib/int_types.h"
 
-enum CUDATimerEnum {
+enum CUDATimerEnum
+{
   kTotal,
   kMandelbrot,
   kFractalReduce,
@@ -13,14 +14,16 @@ enum CUDATimerEnum {
   kCount_,
 };
 
-struct CUDATimes {
+struct CUDATimes
+{
   float current_;
   float average_;
   float min_;
   float max_;
 };
 
-class CUDATimer {
+class CUDATimer
+{
   CUDATimer();
   ~CUDATimer();
   cudaEvent_t start_;
@@ -35,12 +38,14 @@ class CUDATimer {
 
 class CUDATimerRun;
 
-class CUDATimers {
-public:
+class CUDATimers
+{
+  public:
   CUDATimers(CUDATimerEnum num_timers, bool enable_timers);
   ~CUDATimers();
   CUDATimes GetTimes(CUDATimerEnum timer_id);
-private:
+
+  private:
   bool enable_timers_;
   CUDATimer* cuda_timers_;
 
@@ -49,11 +54,13 @@ private:
   friend class CUDATimerRun;
 };
 
-class CUDATimerRun {
-public:
+class CUDATimerRun
+{
+  public:
   CUDATimerRun(CUDATimers& cuda_timers, CUDATimerEnum timer_id);
   ~CUDATimerRun();
-private:
+
+  private:
   CUDATimers& cuda_timers_;
   CUDATimerEnum timer_id_;
 };

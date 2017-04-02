@@ -11,10 +11,10 @@
 
 #include "pch.h"
 
+#include "../track/track.h"
 #include "bailout_dlg.h"
 #include "palette_ctrl.h"
 #include "render_ctrl.h"
-#include "../track/track.h"
 
 using namespace std;
 using namespace boost;
@@ -28,8 +28,9 @@ wxString g_app_name(L"Benoit Track Editor");
 // Main frame declaration.
 // ---------------------------------------------------------------------------
 
-class MyFrame : public wxFrame {
-public:
+class MyFrame : public wxFrame
+{
+  public:
   MyFrame(const wxString& title);
 
   // Event handlers (these functions should _not_ be virtual).
@@ -69,16 +70,16 @@ public:
 
   // Events.
   void OnSize(wxSizeEvent& event);
-	void OnRandomPalette(wxCommandEvent& event);
-	void OnFractalPosChange(wxScrollEvent& event);
+  void OnRandomPalette(wxCommandEvent& event);
+  void OnFractalPosChange(wxScrollEvent& event);
   // Events from TemporalPaletteCtrl.
-	void OnPaletteHasChanged(PaletteEvent& event);
+  void OnPaletteHasChanged(PaletteEvent& event);
   // Events from RenderCtrl.
-	void OnRenderHasChanged(RenderEvent& event);
+  void OnRenderHasChanged(RenderEvent& event);
   // Events from BailoutDialog.
-	void OnBailoutHasChanged(BailoutEvent& event);
+  void OnBailoutHasChanged(BailoutEvent& event);
 
-private:
+  private:
   Track track_;
   RenderCtrl* render_ctrl_;
   TemporalPaletteCtrl* temporal_palette_ctrl_;
@@ -156,7 +157,7 @@ enum
 
 BEGIN_EVENT_TABLE(MyFrame, wxFrame)
 
-EVT_MENU(kMinimalQuit,  MyFrame::OnQuit)
+EVT_MENU(kMinimalQuit, MyFrame::OnQuit)
 EVT_MENU(kMinimalAbout, MyFrame::OnAbout)
 EVT_MENU(kNew, MyFrame::OnNew)
 EVT_MENU(kOpen, MyFrame::OnOpen)
@@ -207,10 +208,11 @@ END_EVENT_TABLE()
 // Main application.
 // ---------------------------------------------------------------------------
 
-class MyApp : public wxApp {
-  MyFrame *frame_;
+class MyApp : public wxApp
+{
+  MyFrame* frame_;
   DECLARE_EVENT_TABLE()
-public:
+  public:
   virtual bool OnInit();
 };
 
@@ -218,14 +220,15 @@ BEGIN_EVENT_TABLE(MyApp, wxApp)
 END_EVENT_TABLE()
 
 // The program execution "starts" here.
-bool MyApp::OnInit() {
+bool MyApp::OnInit()
+{
   frame_ = new MyFrame(g_app_name);
   frame_->Show(TRUE);
   return TRUE;
   cout << "here" << endl;
 }
 
-//void MyApp::on_char(wxKeyEvent& event) {
+// void MyApp::on_char(wxKeyEvent& event) {
 //  if (event.GetKeyCode() >= '1' && event.GetKeyCode() <= '9') {
 //    frame_->RandomPalette(event.GetKeyCode() - '0');
 //  }
@@ -238,8 +241,7 @@ IMPLEMENT_APP(MyApp)
 // ---------------------------------------------------------------------------
 
 MyFrame::MyFrame(const wxString& title)
-: wxFrame(0, -1, title),
-unsaved_changes_(false)
+  : wxFrame(0, -1, title), unsaved_changes_(false)
 {
   // Set the frame icon.
   /////////////////////////////////SetIcon(wxICON(mondrian));
@@ -247,13 +249,15 @@ unsaved_changes_(false)
   // Create a menu bar.
   wxMenu* file_menu(new wxMenu);
   file_menu->Append(kNew, L"&New\tCtrl-N", L"New track");
-	file_menu->Append(kOpen, L"&Open Track\tCtrl-O", L"Open a track");
+  file_menu->Append(kOpen, L"&Open Track\tCtrl-O", L"Open a track");
   file_menu->Append(kSave, L"S&ave Track\tCtrl-S", L"Save the track");
-  file_menu->Append(kSaveAs, L"S&ave Track As\tCtrl-A", L"Save the track with a new name");
+  file_menu->Append(
+      kSaveAs, L"S&ave Track As\tCtrl-A", L"Save the track with a new name");
   file_menu->Append(kMinimalQuit, L"E&xit\tAlt-X", L"Quit this program");
 
   wxMenu* edit_menu(new wxMenu);
-  edit_menu->Append(kDuplicateSpatialKey, L"&Duplicate Spatial Key\tCtrl-R", L"");
+  edit_menu->Append(
+      kDuplicateSpatialKey, L"&Duplicate Spatial Key\tCtrl-R", L"");
 
   calculation_menu = new wxMenu;
   calculation_menu->Append(kSetBailout, L"Set bailout value");
@@ -272,7 +276,7 @@ unsaved_changes_(false)
   supersample_menu->AppendRadioItem(kSuperSample4, L"16x");
   supersample_menu->AppendRadioItem(kSuperSample5, L"25x");
 
-  wxMenu *random_palette_menu(new wxMenu);
+  wxMenu* random_palette_menu(new wxMenu);
   random_palette_menu->Append(kRandomPalette1, L"1 color\t1");
   random_palette_menu->Append(kRandomPalette2, L"2 colors\t2");
   random_palette_menu->Append(kRandomPalette3, L"3 colors\t3");
@@ -304,8 +308,8 @@ unsaved_changes_(false)
   // Attach menu bar to the frame.
   SetMenuBar(menu_bar);
 
-	// Create a vertical sizer.
-	top_sizer_ = new wxBoxSizer(wxVERTICAL);
+  // Create a vertical sizer.
+  top_sizer_ = new wxBoxSizer(wxVERTICAL);
 
   render_ctrl_ = new RenderCtrl(track_.GetFractalSpec());
   render_ctrl_->Create(this, -1, wxDefaultPosition, wxSize(640, 480));
@@ -316,40 +320,47 @@ unsaved_changes_(false)
   top_sizer_->Add(render_ctrl_, 1, wxEXPAND | wxFIXED_MINSIZE);
 
   // Render position slider and text box.
-	wxBoxSizer* pos_sizer(new wxBoxSizer(wxHORIZONTAL));
+  wxBoxSizer* pos_sizer(new wxBoxSizer(wxHORIZONTAL));
   // For the pos slider, we set the max value to the highest signed 16 bit
   // value. That's high enough that we get a good resolution on the slider
   // regardless of the size of the window and hopefully low enough that all
-  // slider implementations support it. 
-	zoom_pos_slider_ = new wxSlider(this, -1, 0, 0, 32767, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL | wxCLIP_CHILDREN);
+  // slider implementations support it.
+  zoom_pos_slider_ = new wxSlider(
+      this, -1, 0, 0, 32767, wxDefaultPosition, wxDefaultSize,
+      wxSL_HORIZONTAL | wxCLIP_CHILDREN);
   zoom_pos_slider_->SetBackgroundColour(*wxWHITE);
-	zoom_pos_text_zoom_begin_ = new wxTextCtrl(this, -1, L"", wxDefaultPosition, wxSize(80, -1));
-	zoom_pos_text_zoom_end_ = new wxTextCtrl(this, -1, L"", wxDefaultPosition, wxSize(80, -1));
-	pos_sizer->Add(zoom_pos_text_zoom_begin_, 0, wxLEFT | wxRIGHT, 5);
-	pos_sizer->Add(zoom_pos_slider_, 1, wxEXPAND , 5);
-	pos_sizer->Add(zoom_pos_text_zoom_end_, 0, wxLEFT | wxRIGHT, 5);
-	top_sizer_->Add(pos_sizer, 0, wxEXPAND | wxTOP | wxBOTTOM, 2);
+  zoom_pos_text_zoom_begin_ =
+      new wxTextCtrl(this, -1, L"", wxDefaultPosition, wxSize(80, -1));
+  zoom_pos_text_zoom_end_ =
+      new wxTextCtrl(this, -1, L"", wxDefaultPosition, wxSize(80, -1));
+  pos_sizer->Add(zoom_pos_text_zoom_begin_, 0, wxLEFT | wxRIGHT, 5);
+  pos_sizer->Add(zoom_pos_slider_, 1, wxEXPAND, 5);
+  pos_sizer->Add(zoom_pos_text_zoom_end_, 0, wxLEFT | wxRIGHT, 5);
+  top_sizer_->Add(pos_sizer, 0, wxEXPAND | wxTOP | wxBOTTOM, 2);
 
-	// TemporalPaletteCtrl
-	temporal_palette_ctrl_ = new TemporalPaletteCtrl(track_.GetTemporalPalette());
-	temporal_palette_ctrl_->Create(this, -1, wxPoint(0, 0), wxDefaultSize, L"TemporalPaletteCtrl");
-	top_sizer_->Add(temporal_palette_ctrl_, 0, wxEXPAND | wxALL, 10);
+  // TemporalPaletteCtrl
+  temporal_palette_ctrl_ = new TemporalPaletteCtrl(track_.GetTemporalPalette());
+  temporal_palette_ctrl_->Create(
+      this, -1, wxPoint(0, 0), wxDefaultSize, L"TemporalPaletteCtrl");
+  top_sizer_->Add(temporal_palette_ctrl_, 0, wxEXPAND | wxALL, 10);
 
   // Set the initial palette for RenderCtrl.
-  render_ctrl_->SetPalette(temporal_palette_ctrl_->GetColorArray(0.0, render_ctrl_->GetBailout()));
+  render_ctrl_->SetPalette(
+      temporal_palette_ctrl_->GetColorArray(0.0, render_ctrl_->GetBailout()));
 
   // Use the sizer for layout.
-	SetSizer(top_sizer_);
+  SetSizer(top_sizer_);
   // Tell the sizer to set (and fit) the minimal size of the window to match the
   // sizer's minimal size.
-	top_sizer_->SetSizeHints(this);
+  top_sizer_->SetSizeHints(this);
 
-	SetBackgroundColour(*wxWHITE);
+  SetBackgroundColour(*wxWHITE);
 
   UpdateZoomValues();
 
   // Create the bailout dialog but keep it hidden.
-  bailout_dialog_ = new BailoutDialog(this, -1, wxDefaultPosition, wxDefaultSize);
+  bailout_dialog_ =
+      new BailoutDialog(this, -1, wxDefaultPosition, wxDefaultSize);
 
   // Set default supersample and calculation method. Default bailout is stored
   // in track.
@@ -357,8 +368,8 @@ unsaved_changes_(false)
   OnSuperSample3(event);
 
   // Check if CUDA capable device is present.
-	int cuda_device_count;
-	cudaError_t res(cudaGetDeviceCount(&cuda_device_count));
+  int cuda_device_count;
+  cudaError_t res(cudaGetDeviceCount(&cuda_device_count));
   if (res != cudaSuccess || !cuda_device_count) {
     // No CUDA capable device was found, so we disable CUDA calculation options.
     calculation_menu->Enable(kCalcMethodCUDAFloat, false);
@@ -379,13 +390,13 @@ unsaved_changes_(false)
   // If the app has been associated with the .benoit file type, the path appears
   // as the first argument when the app is opened by double clicking a track
   // file.
-  if(wxTheApp->argc > 1) {
+  if (wxTheApp->argc > 1) {
     track_.Load(wxTheApp->argv[1]);
     SetTrackStatus(false, wxTheApp->argv[1]);
     Refresh();
   }
   //// For profiling, do automatic stuff here.
-  //if(wxTheApp->argc > 1) {
+  // if(wxTheApp->argc > 1) {
   //  OnSuperSample5(wxCommandEvent());
   //  OnCalcMethodCUDAFloat(wxCommandEvent());
   //  Maximize();
@@ -394,95 +405,116 @@ unsaved_changes_(false)
 
 // Event handlers.
 
-void MyFrame::OnQuit(wxCommandEvent& WXUNUSED(event)) {
+void MyFrame::OnQuit(wxCommandEvent& WXUNUSED(event))
+{
   // TRUE is to force the frame to close.
   Close(TRUE);
 }
 
-void MyFrame::OnClose(wxCloseEvent& event) {
+void MyFrame::OnClose(wxCloseEvent& event)
+{
   UnsavedChanges();
   Destroy();
 }
 
-void MyFrame::OnSetBailout(wxCommandEvent& event) {
+void MyFrame::OnSetBailout(wxCommandEvent& event)
+{
   bailout_dialog_->SetBailout(render_ctrl_->GetBailout());
   bailout_dialog_->CenterOnParent();
   bailout_dialog_->Show();
 }
 
-void MyFrame::OnCalcMethodx86Float(wxCommandEvent& event) {
+void MyFrame::OnCalcMethodx86Float(wxCommandEvent& event)
+{
   render_ctrl_->SetCalcMethod(kCalcx86Float);
   calculation_menu->Check(kCalcMethodx86Float, true);
 }
-void MyFrame::OnCalcMethodx86Double(wxCommandEvent& event) {
+void MyFrame::OnCalcMethodx86Double(wxCommandEvent& event)
+{
   render_ctrl_->SetCalcMethod(kCalcx86Double);
   calculation_menu->Check(kCalcMethodx86Double, true);
 }
-void MyFrame::OnCalcMethodSSEFloat(wxCommandEvent& event) {
+void MyFrame::OnCalcMethodSSEFloat(wxCommandEvent& event)
+{
   render_ctrl_->SetCalcMethod(kCalcSSE4Float);
   calculation_menu->Check(kCalcMethodSSEFloat, true);
 }
-void MyFrame::OnCalcMethodSSEDouble(wxCommandEvent& event) {
+void MyFrame::OnCalcMethodSSEDouble(wxCommandEvent& event)
+{
   render_ctrl_->SetCalcMethod(kCalcSSE2Double);
   calculation_menu->Check(kCalcMethodSSEDouble, true);
 }
-void MyFrame::OnCalcMethodCUDAFloat(wxCommandEvent& event) {
+void MyFrame::OnCalcMethodCUDAFloat(wxCommandEvent& event)
+{
   render_ctrl_->SetCalcMethod(kCalcCUDAFloat);
   calculation_menu->Check(kCalcMethodCUDAFloat, true);
 }
-void MyFrame::OnCalcMethodCUDADouble(wxCommandEvent& event) {
+void MyFrame::OnCalcMethodCUDADouble(wxCommandEvent& event)
+{
   render_ctrl_->SetCalcMethod(kCalcCUDADouble);
   calculation_menu->Check(kCalcMethodCUDADouble, true);
 }
 
-void MyFrame::OnSuperSample1(wxCommandEvent& event) {
+void MyFrame::OnSuperSample1(wxCommandEvent& event)
+{
   render_ctrl_->SetSuperSample(1);
   supersample_menu->Check(kSuperSample1, true);
 }
-void MyFrame::OnSuperSample2(wxCommandEvent& event) {
+void MyFrame::OnSuperSample2(wxCommandEvent& event)
+{
   render_ctrl_->SetSuperSample(2);
   supersample_menu->Check(kSuperSample2, true);
 }
-void MyFrame::OnSuperSample3(wxCommandEvent& event) {
+void MyFrame::OnSuperSample3(wxCommandEvent& event)
+{
   render_ctrl_->SetSuperSample(3);
   supersample_menu->Check(kSuperSample3, true);
 }
-void MyFrame::OnSuperSample4(wxCommandEvent& event) {
+void MyFrame::OnSuperSample4(wxCommandEvent& event)
+{
   render_ctrl_->SetSuperSample(4);
   supersample_menu->Check(kSuperSample4, true);
 }
-void MyFrame::OnSuperSample5(wxCommandEvent& event) {
+void MyFrame::OnSuperSample5(wxCommandEvent& event)
+{
   render_ctrl_->SetSuperSample(5);
   supersample_menu->Check(kSuperSample5, true);
 }
 
-void MyFrame::OnHideGflops(wxCommandEvent& event) {
+void MyFrame::OnHideGflops(wxCommandEvent& event)
+{
   render_ctrl_->SetHideGflops(misc_menu->IsChecked(kHideGflops));
 }
 
-void MyFrame::OnDrawOnlyAtEnd(wxCommandEvent& event) {
+void MyFrame::OnDrawOnlyAtEnd(wxCommandEvent& event)
+{
   render_ctrl_->SetDrawOnlyAtEnd(misc_menu->IsChecked(kDrawOnlyAtEnd));
 }
 
-void MyFrame::OnMarkCurrentAsZoomStart(wxCommandEvent& event) {
+void MyFrame::OnMarkCurrentAsZoomStart(wxCommandEvent& event)
+{
   render_ctrl_->SetZoomBegin(render_ctrl_->GetZoom());
 }
 
-void MyFrame::OnSize(wxSizeEvent& event) {
+void MyFrame::OnSize(wxSizeEvent& event)
+{
   event.Skip();
 }
 
-void MyFrame::OnNew(wxCommandEvent& event) {
+void MyFrame::OnNew(wxCommandEvent& event)
+{
   UnsavedChanges();
   track_.Init();
   SetTrackStatus(false, L"");
   Refresh();
 }
 
-void MyFrame::OnOpen(wxCommandEvent& event) {
+void MyFrame::OnOpen(wxCommandEvent& event)
+{
   UnsavedChanges();
-  wxFileDialog d(this, L"Open track", L"", L"track.benoit", L"*.benoit", wxFD_OPEN);
-	if (d.ShowModal() != wxID_OK) {
+  wxFileDialog d(
+      this, L"Open track", L"", L"track.benoit", L"*.benoit", wxFD_OPEN);
+  if (d.ShowModal() != wxID_OK) {
     return;
   }
   track_.Load(d.GetPath().c_str());
@@ -490,7 +522,8 @@ void MyFrame::OnOpen(wxCommandEvent& event) {
   Refresh();
 }
 
-void MyFrame::OnSave(wxCommandEvent& event) {
+void MyFrame::OnSave(wxCommandEvent& event)
+{
   if (!unsaved_changes_) {
     return;
   }
@@ -501,8 +534,10 @@ void MyFrame::OnSave(wxCommandEvent& event) {
   SetTrackStatus(false, track_path_.c_str());
 }
 
-void MyFrame::OnSaveAs(wxCommandEvent& event) {
-  wxFileDialog d(this, L"Save track", L"", L"track.benoit", L"*.benoit", wxFD_SAVE);
+void MyFrame::OnSaveAs(wxCommandEvent& event)
+{
+  wxFileDialog d(
+      this, L"Save track", L"", L"track.benoit", L"*.benoit", wxFD_SAVE);
   if (d.ShowModal() != wxID_OK) {
     return;
   }
@@ -512,62 +547,77 @@ void MyFrame::OnSaveAs(wxCommandEvent& event) {
 
 // Edit menu.
 
-void MyFrame::OnDuplicateSpatialKey(wxCommandEvent& event) {
+void MyFrame::OnDuplicateSpatialKey(wxCommandEvent& event)
+{
   temporal_palette_ctrl_->DuplicateSpatialKey();
 }
 
 //
 
-void MyFrame::OnRandomPalette(wxCommandEvent& event) {
+void MyFrame::OnRandomPalette(wxCommandEvent& event)
+{
   int num_colors(event.GetId() - kRandomPalette1 + 1);
   vector<double> positions = render_ctrl_->GetSlices(num_colors);
   temporal_palette_ctrl_->RandomPalette(num_colors, positions);
 }
 
-void MyFrame::OnAbout(wxCommandEvent& WXUNUSED(event)) {
-	wxMessageBox(g_app_name + L" - dahlsys.com", L"About", wxOK | wxICON_INFORMATION | wxCENTER, this);
+void MyFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
+{
+  wxMessageBox(
+      g_app_name + L" - dahlsys.com", L"About",
+      wxOK | wxICON_INFORMATION | wxCENTER, this);
 }
 
-void MyFrame::OnFractalPosChange(wxScrollEvent& event) {
+void MyFrame::OnFractalPosChange(wxScrollEvent& event)
+{
   // Get position as a normalized double.
   u32 max_pos(zoom_pos_slider_->GetMax());
-	u32 pos(zoom_pos_slider_->GetValue());
+  u32 pos(zoom_pos_slider_->GetValue());
   double pos_norm(static_cast<double>(pos) / static_cast<double>(max_pos));
-	// Get palette for new position and update the RenderCtrl palette.
-	render_ctrl_->SetPalette(temporal_palette_ctrl_->GetColorArray(pos_norm, render_ctrl_->GetBailout()));
-	// Update position.
-	render_ctrl_->SetPos(pos_norm);
+  // Get palette for new position and update the RenderCtrl palette.
+  render_ctrl_->SetPalette(
+      temporal_palette_ctrl_->GetColorArray(
+          pos_norm, render_ctrl_->GetBailout()));
+  // Update position.
+  render_ctrl_->SetPos(pos_norm);
 }
 
-void MyFrame::SetTrackStatus(bool unsaved_changes, wpath track_path) {
+void MyFrame::SetTrackStatus(bool unsaved_changes, wpath track_path)
+{
   unsaved_changes_ = unsaved_changes;
   track_path_ = track_path;
   //// Update the window title with the track status.
-  //SetTitle(wxString::Format("%s %s - %s",
+  // SetTitle(wxString::Format("%s %s - %s",
   //  (unsaved_changes_ ? "*" : ""),
   //  (track_path_.empty() ? "new" : track_path_.stem().c_str()),
   //  g_app_name));
   SetTitle(wxString(L"fixme"));
 }
 
-void MyFrame::UnsavedChanges() {
+void MyFrame::UnsavedChanges()
+{
   if (unsaved_changes_) {
-    if (wxMessageBox(L"Save changes?", L"Unsaved changes", wxYES_NO, this) == wxYES) {
+    if (wxMessageBox(L"Save changes?", L"Unsaved changes", wxYES_NO, this)
+        == wxYES) {
       wxCommandEvent event;
       OnSave(event);
     }
   }
 }
 
-void MyFrame::UpdateZoomValues() {
-	// Update text boxes.
-	zoom_pos_text_zoom_begin_->SetValue(wxString(str(wformat(L"%.4e") % render_ctrl_->GetZoomBegin()).c_str()));
-	zoom_pos_text_zoom_end_->SetValue(wxString(str(wformat(L"%.4e") % render_ctrl_->GetZoomEnd()).c_str()));
+void MyFrame::UpdateZoomValues()
+{
+  // Update text boxes.
+  zoom_pos_text_zoom_begin_->SetValue(
+      wxString(str(wformat(L"%.4e") % render_ctrl_->GetZoomBegin()).c_str()));
+  zoom_pos_text_zoom_end_->SetValue(
+      wxString(str(wformat(L"%.4e") % render_ctrl_->GetZoomEnd()).c_str()));
   zoom_pos_slider_->SetValue(zoom_pos_slider_->GetMax());
   temporal_palette_ctrl_->SetFocusedTemporalKeyPos(1.0f);
 }
 
-void MyFrame::Refresh() {
+void MyFrame::Refresh()
+{
   // RenderCtrl.Init() resets a few values that we want to preserve, so we
   // read those out and write then back after the Init().
   u32 supersample(render_ctrl_->GetSuperSample());
@@ -580,7 +630,8 @@ void MyFrame::Refresh() {
   OnDrawOnlyAtEnd(event);
   // Reset the TemporalPaletteCtrl.
   temporal_palette_ctrl_->Init();
-	render_ctrl_->SetPalette(temporal_palette_ctrl_->GetColorArray(0.0, render_ctrl_->GetBailout()));
+  render_ctrl_->SetPalette(
+      temporal_palette_ctrl_->GetColorArray(0.0, render_ctrl_->GetBailout()));
   UpdateZoomValues();
 }
 
@@ -588,14 +639,18 @@ void MyFrame::Refresh() {
 // Handlers for events from TemporalPaletteCtrl.
 // ---------------------------------------------------------------------------
 
-void MyFrame::OnPaletteHasChanged(PaletteEvent& event) {
+void MyFrame::OnPaletteHasChanged(PaletteEvent& event)
+{
   // Get position as a normalized double.
   double max_pos(static_cast<double>(zoom_pos_slider_->GetMax()));
-  double pos (static_cast<double>(zoom_pos_slider_->GetValue()));
+  double pos(static_cast<double>(zoom_pos_slider_->GetValue()));
   double pos_norm(pos / max_pos);
   // Get palette for new position and update the RenderCtrl palette.
-  render_ctrl_->SetPalette(temporal_palette_ctrl_->GetColorArray(pos_norm, render_ctrl_->GetBailout()));
-  zoom_pos_slider_->SetValue(temporal_palette_ctrl_->GetFocusedTemporalKeyPos() * max_pos);
+  render_ctrl_->SetPalette(
+      temporal_palette_ctrl_->GetColorArray(
+          pos_norm, render_ctrl_->GetBailout()));
+  zoom_pos_slider_->SetValue(
+      temporal_palette_ctrl_->GetFocusedTemporalKeyPos() * max_pos);
   wxScrollEvent event2;
   OnFractalPosChange(event2);
   SetTrackStatus(true, track_path_);
@@ -605,7 +660,8 @@ void MyFrame::OnPaletteHasChanged(PaletteEvent& event) {
 // Handlers for events from RenderCtrl.
 // ---------------------------------------------------------------------------
 
-void MyFrame::OnRenderHasChanged(RenderEvent& event) {
+void MyFrame::OnRenderHasChanged(RenderEvent& event)
+{
   UpdateZoomValues();
   SetTrackStatus(true, track_path_);
 }
@@ -614,14 +670,16 @@ void MyFrame::OnRenderHasChanged(RenderEvent& event) {
 // Handlers for events from BailoutDialog.
 // ---------------------------------------------------------------------------
 
-void MyFrame::OnBailoutHasChanged(BailoutEvent& event) {
+void MyFrame::OnBailoutHasChanged(BailoutEvent& event)
+{
   // Get position as a normalized double.
   u32 max_pos(zoom_pos_slider_->GetMax());
-	u32 pos(zoom_pos_slider_->GetValue());
+  u32 pos(zoom_pos_slider_->GetValue());
   double pos_norm(static_cast<double>(pos) / static_cast<double>(max_pos));
-	// Get palette for new position and update the RenderCtrl palette.
+  // Get palette for new position and update the RenderCtrl palette.
   render_ctrl_->SetBailout(event.bailout);
-	render_ctrl_->SetPalette(temporal_palette_ctrl_->GetColorArray(pos_norm, event.bailout));
+  render_ctrl_->SetPalette(
+      temporal_palette_ctrl_->GetColorArray(pos_norm, event.bailout));
   // Update track status.
   SetTrackStatus(true, track_path_);
 }

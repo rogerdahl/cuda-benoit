@@ -2,23 +2,23 @@
 #include "../../lib/int_types.h"
 
 // std
-#include <string>
 #include <fstream>
 #include <iostream>
+#include <string>
 
 // boost::filesystem
-#include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/exception.hpp>
+#include <boost/filesystem/fstream.hpp>
+#include <boost/filesystem/operations.hpp>
 
 // boost::format
 #include <boost/format.hpp>
 
 // OpenGL
-#include <GL/glew.h>
 #include <GL/gl.h>
-#include <GL/glut.h>
+#include <GL/glew.h>
 #include <GL/glext.h>
+#include <GL/glut.h>
 
 // CUDA.
 #include <cuda_runtime.h>
@@ -30,4 +30,3 @@
 //#include <cutil_gl_inline.h>
 #include <cuda_gl_interop.h>
 #include <vector_types.h>
-

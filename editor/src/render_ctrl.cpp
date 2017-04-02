@@ -3,8 +3,6 @@
 // App.
 #include "render_ctrl.h"
 
-
-
 using namespace std;
 using namespace boost;
 
@@ -31,51 +29,59 @@ DEFINE_EVENT_TYPE(wxEVT_RENDER_HASCHANGED)
 // RenderCtrl
 // ---------------------------------------------------------------------------
 
-RenderCtrl::RenderCtrl(FractalSpec& fractal_spec) :
-  fractal_spec_(fractal_spec), calc_(fractal_spec), width_(0), height_(0)
+RenderCtrl::RenderCtrl(FractalSpec& fractal_spec)
+  : fractal_spec_(fractal_spec), calc_(fractal_spec), width_(0), height_(0)
 {
   refresh_timer_.SetOwner(this, 1);
   Init();
 }
 
-void RenderCtrl::Init() {
+void RenderCtrl::Init()
+{
   calc_.Init();
   calc_.SetDim(width_ * supersample_, height_ * supersample_);
-  supersample_ = 1,
-  draw_only_at_end_ = false;
+  supersample_ = 1, draw_only_at_end_ = false;
   hide_gflops_ = false;
   StartRefresh();
-  //fractal_spec_.zoom_begin_ = calc_.GetZoom();
-  //fractal_spec_.zoom_end_ = calc_.GetZoom();
-  //cache_image_ = 0;
-  //cache_image_zoom_ = 0.0;
+  // fractal_spec_.zoom_begin_ = calc_.GetZoom();
+  // fractal_spec_.zoom_end_ = calc_.GetZoom();
+  // cache_image_ = 0;
+  // cache_image_zoom_ = 0.0;
 }
 
-RenderCtrl::~RenderCtrl() {
-}
-
-bool RenderCtrl::Create(wxWindow *parent, wxWindowID id, const wxPoint& pos, const wxSize& size, const wxString& name)
+RenderCtrl::~RenderCtrl()
 {
-  if (!wxControl::Create(parent, id, pos, size, wxCLIP_CHILDREN | wxWANTS_CHARS, wxDefaultValidator, name)) {
+}
+
+bool RenderCtrl::Create(
+    wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size,
+    const wxString& name)
+{
+  if (!wxControl::Create(
+          parent, id, pos, size, wxCLIP_CHILDREN | wxWANTS_CHARS,
+          wxDefaultValidator, name)) {
     return false;
   }
 
   SetBackgroundColour(*wxWHITE);
 
-  calc_.SetDim(GetClientSize().x * supersample_, GetClientSize().y * supersample_);
+  calc_.SetDim(
+      GetClientSize().x * supersample_, GetClientSize().y * supersample_);
   StartRefresh();
 
   return true;
 }
 
-void RenderCtrl::StartRefresh() {
+void RenderCtrl::StartRefresh()
+{
   refresh_timer_.Start(refresh_interval);
   stopwatch_gflops_.Start();
 }
 
 // OnSize gets called before OnPaint on initialization and then whenever the
 // frame is resized.
-void RenderCtrl::OnSize(wxSizeEvent& event) {
+void RenderCtrl::OnSize(wxSizeEvent& event)
+{
   width_ = GetClientSize().x;
   height_ = GetClientSize().y;
   calc_.SetDim(width_ * supersample_, height_ * supersample_);
@@ -83,7 +89,8 @@ void RenderCtrl::OnSize(wxSizeEvent& event) {
 }
 
 // Draw the current fractal_buf frame on screen.
-void RenderCtrl::OnPaint(wxPaintEvent& event) {
+void RenderCtrl::OnPaint(wxPaintEvent& event)
+{
   wxPaintDC dc(this);
 
   dc.SetTextForeground(wxColor(255, 255, 255));
@@ -97,7 +104,7 @@ void RenderCtrl::OnPaint(wxPaintEvent& event) {
   // If there is no buffer of fractal data, we exit here.
   u8* reduced_fractal_buf(GetReducedFractalBuf());
   if (!reduced_fractal_buf) {
-    dc.DrawRectangle(wxRect(0,0, width_, height_));
+    dc.DrawRectangle(wxRect(0, 0, width_, height_));
     dc.DrawText(wxString(L"no data"), 10, 10);
     return;
   }
@@ -115,7 +122,8 @@ void RenderCtrl::OnPaint(wxPaintEvent& event) {
 }
 
 // Calculate new frame coordinates and start calculating that frame.
-void RenderCtrl::OnLeftClick(wxMouseEvent& event) {
+void RenderCtrl::OnLeftClick(wxMouseEvent& event)
+{
   wxPoint point(event.GetPosition());
   wxSize s(GetClientSize());
 
@@ -129,7 +137,7 @@ void RenderCtrl::OnLeftClick(wxMouseEvent& event) {
   calc_.SetZoom(zoom);
   fractal_spec_.zoom_end_ = zoom;
   StartRefresh();
-  //if (zoom < zoom_end_) {
+  // if (zoom < zoom_end_) {
   //  zoom_end_ = zoom;
   //}
 
@@ -137,19 +145,21 @@ void RenderCtrl::OnLeftClick(wxMouseEvent& event) {
 }
 
 // Calculate new frame coordinates and start calculating that frame.
-void RenderCtrl::OnRightClick(wxMouseEvent& event) {
+void RenderCtrl::OnRightClick(wxMouseEvent& event)
+{
   double zoom(calc_.GetZoom() * click_zoom_speed);
   calc_.SetZoom(zoom);
   StartRefresh();
   fractal_spec_.zoom_end_ = zoom;
-  //if (zoom > zoom_begin_) {
+  // if (zoom > zoom_begin_) {
   //  zoom_begin_ = zoom;
   //}
 
   GenerateChangedEvent();
 }
 
-void RenderCtrl::OnTimer(wxTimerEvent& WXUNUSED(event)) {
+void RenderCtrl::OnTimer(wxTimerEvent& WXUNUSED(event))
+{
   // If the calculator thread is done, we stop the timed refreshes.
   if (!calc_.IsRunning()) {
     refresh_timer_.Stop();
@@ -159,45 +169,53 @@ void RenderCtrl::OnTimer(wxTimerEvent& WXUNUSED(event)) {
   Refresh(false);
 }
 
-void RenderCtrl::SetSuperSample(u32 supersample) {
+void RenderCtrl::SetSuperSample(u32 supersample)
+{
   supersample_ = supersample;
   calc_.SetDim(width_ * supersample, height_ * supersample);
   StartRefresh();
 }
 
-u32 RenderCtrl::GetSuperSample() {
+u32 RenderCtrl::GetSuperSample()
+{
   return supersample_;
 }
 
-void RenderCtrl::SetHideGflops(bool hide) {
+void RenderCtrl::SetHideGflops(bool hide)
+{
   hide_gflops_ = hide;
   Refresh(false);
 }
 
-void RenderCtrl::SetDrawOnlyAtEnd(bool draw_only_at_end) {
+void RenderCtrl::SetDrawOnlyAtEnd(bool draw_only_at_end)
+{
   draw_only_at_end_ = draw_only_at_end;
 }
 
-CalcMethods RenderCtrl::GetCalcMethod() {
+CalcMethods RenderCtrl::GetCalcMethod()
+{
   return calc_.GetCalcMethod();
 }
 
-void RenderCtrl::SetCalcMethod(CalcMethods c) {
+void RenderCtrl::SetCalcMethod(CalcMethods c)
+{
   calc_.SetCalcMethod(c);
   StartRefresh();
 }
 
-
-void RenderCtrl::SetPalette(const ColorArray& ca) {
+void RenderCtrl::SetPalette(const ColorArray& ca)
+{
   RenderCtrl::palette = ca;
   Refresh(false);
 }
 
-ColorArray RenderCtrl::GetColorArray() {
+ColorArray RenderCtrl::GetColorArray()
+{
   return palette;
 }
 
-void RenderCtrl::SetPos(double pos) {
+void RenderCtrl::SetPos(double pos)
+{
   // The position slider is normalized to (0-1). Adjust this value to a value
   // between zoom_begin and zoom_end with movement on a "log scale".
   double zoom(pow(GetZoomEnd() / GetZoomBegin(), pos) * GetZoomBegin());
@@ -209,39 +227,47 @@ void RenderCtrl::SetPos(double pos) {
   StartRefresh();
 }
 
-void RenderCtrl::SetBailout(u32 bailout) {
+void RenderCtrl::SetBailout(u32 bailout)
+{
   calc_.SetBailout(bailout);
   StartRefresh();
 }
 
-u32 RenderCtrl::GetBailout() {
+u32 RenderCtrl::GetBailout()
+{
   return calc_.GetBailout();
 }
 
-void RenderCtrl::SetZoomBegin(double zoom_begin) {
+void RenderCtrl::SetZoomBegin(double zoom_begin)
+{
   fractal_spec_.zoom_begin_ = zoom_begin;
   GenerateChangedEvent();
 }
 
-double RenderCtrl::GetZoomBegin() {
+double RenderCtrl::GetZoomBegin()
+{
   return fractal_spec_.zoom_begin_;
 }
 
-void RenderCtrl::SetZoomEnd(double zoom_end) {
+void RenderCtrl::SetZoomEnd(double zoom_end)
+{
   fractal_spec_.zoom_end_ = zoom_end;
   GenerateChangedEvent();
 }
 
-double RenderCtrl::GetZoomEnd() {
+double RenderCtrl::GetZoomEnd()
+{
   return fractal_spec_.zoom_end_;
 }
 
-void RenderCtrl::SetZoom(double zoom) {
+void RenderCtrl::SetZoom(double zoom)
+{
   calc_.SetZoom(zoom);
   GenerateChangedEvent();
 }
 
-double RenderCtrl::GetZoom() {
+double RenderCtrl::GetZoom()
+{
   return calc_.GetZoom();
 }
 
@@ -256,14 +282,15 @@ double RenderCtrl::GetZoom() {
 // The data is RGB data, created for use with the wxImage::SetData() call. That
 // call requires that the data be malloced. After SetData(), the wxImage object
 // becomes the owner of the data.
-u8* RenderCtrl::GetReducedFractalBuf() {
+u8* RenderCtrl::GetReducedFractalBuf()
+{
   u32* fractal_buf_ptr(calc_.GetFractalBuf());
   if (!fractal_buf_ptr) {
     return 0;
   }
   auto_ptr<vector<u32> > reduced_fractal_buf(new vector<u32>(width_ * height_));
   u32* reduced_fractal_buf_ptr(&(*reduced_fractal_buf.get())[0]);
-  
+
   Color* palette_ptr;
   size_t palette_size(palette.size());
   assert(palette_size);
@@ -305,9 +332,15 @@ u8* RenderCtrl::GetReducedFractalBuf() {
       r /= c;
       g /= c;
       b /= c;
-      if (r > 255) { r = 255; }
-      if (g > 255) { g = 255; }
-      if (b > 255) { b = 255; }
+      if (r > 255) {
+        r = 255;
+      }
+      if (g > 255) {
+        g = 255;
+      }
+      if (b > 255) {
+        b = 255;
+      }
       rgbdata[dst_off * 3] = (u8)r;
       rgbdata[dst_off * 3 + 1] = (u8)g;
       rgbdata[dst_off * 3 + 2] = (u8)b;
@@ -317,7 +350,8 @@ u8* RenderCtrl::GetReducedFractalBuf() {
   return rgbdata;
 }
 
-double RenderCtrl::CalcGigaFlops() {
+double RenderCtrl::CalcGigaFlops()
+{
   u32* fractal_buf_ptr(calc_.GetFractalBuf());
   if (!fractal_buf_ptr) {
     return 0;
@@ -331,8 +365,8 @@ double RenderCtrl::CalcGigaFlops() {
   s32 x, y, i, iter;
   u64 total(0);
 
-//#pragma omp parallel private(x, y, i, iter) reduction(+:total)
-//#pragma omp for schedule(static) nowait
+  //#pragma omp parallel private(x, y, i, iter) reduction(+:total)
+  //#pragma omp for schedule(static) nowait
 
   for (y = 0; y < static_cast<s32>(height_ * supersample_); ++y) {
     i = width_ * y * supersample_;
@@ -347,13 +381,15 @@ double RenderCtrl::CalcGigaFlops() {
   double seconds(stopwatch_gflops_.Time() / 1000.0);
   double total_per_second(static_cast<double>(total) / seconds);
   // There are 14 floating point operations in the mandelbrot calculation loop.
-  double flops_per_second(total_per_second * 14.0); // 14 float instructions in calc loop
+  double flops_per_second(
+      total_per_second * 14.0); // 14 float instructions in calc loop
   // Return gflops/second.
   return flops_per_second / 1.0e9;
-  //return total;
+  // return total;
 }
 
-vector<double> RenderCtrl::GetSlices(int n_slices) {
+vector<double> RenderCtrl::GetSlices(int n_slices)
+{
   u32* fractal_buf(calc_.GetFractalBuf());
   u32 c(width_ * supersample_ * height_ * supersample_);
   u32 bailout(calc_.GetBailout());
@@ -385,16 +421,18 @@ vector<double> RenderCtrl::GetSlices(int n_slices) {
   return slices;
 }
 
-void RenderCtrl::GenerateChangedEvent() {
-	RenderEvent event_out(this, wxEVT_RENDER_HASCHANGED);
-	GetEventHandler()->ProcessEvent(event_out);
+void RenderCtrl::GenerateChangedEvent()
+{
+  RenderEvent event_out(this, wxEVT_RENDER_HASCHANGED);
+  GetEventHandler()->ProcessEvent(event_out);
 }
 
 // ---------------------------------------------------------------------------
 // forward wxWin functions to subcontrols
 // ---------------------------------------------------------------------------
 
-bool RenderCtrl::Destroy() {
+bool RenderCtrl::Destroy()
+{
   return wxControl::Destroy();
 }
 
@@ -403,6 +441,7 @@ bool RenderCtrl::Destroy() {
 // ---------------------------------------------------------------------------
 
 RenderEvent::RenderEvent(RenderCtrl* pal, wxEventType type)
-	: wxCommandEvent(type, pal->GetId()) {
-		SetEventObject(pal);
+  : wxCommandEvent(type, pal->GetId())
+{
+  SetEventObject(pal);
 }

@@ -1,19 +1,19 @@
 #pragma once
 
-#include "wx/control.h"         // the base class
-#include "wx/dcclient.h"        // for wxPaintDC
+#include "wx/control.h" // the base class
+#include "wx/dcclient.h" // for wxPaintDC
 
 // stl
-#include <vector>
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <vector>
 using namespace std;
 
 #include "int_types.h"
 
-#include "palette_ctrl.h"
 #include "../track/track.h"
 #include "calc.h"
+#include "palette_ctrl.h"
 
 // ---------------------------------------------------------------------------
 // TemporalPaletteCtrl events
@@ -21,13 +21,18 @@ using namespace std;
 
 class WXDLLEXPORT RenderCtrl;
 
-class WXDLLEXPORT RenderEvent : public wxCommandEvent {
-	friend class RenderCtrl;
-public:
-	RenderEvent() { }
-	RenderEvent(RenderCtrl*, wxEventType type);
-protected:
-private:
+class WXDLLEXPORT RenderEvent : public wxCommandEvent
+{
+  friend class RenderCtrl;
+
+  public:
+  RenderEvent()
+  {
+  }
+  RenderEvent(RenderCtrl*, wxEventType type);
+
+  protected:
+  private:
 };
 
 // ---------------------------------------------------------------------------
@@ -40,19 +45,26 @@ private:
 // RenderCtrl: a control to render a colorized fractal
 // --------------------------------------------------------------
 
-class WXDLLEXPORT RenderCtrl : public wxControl {
+class WXDLLEXPORT RenderCtrl : public wxControl
+{
   FractalSpec& fractal_spec_;
   Calc calc_;
 
-	ColorArray palette;
+  ColorArray palette;
 
   u16* frame;
-	u32 movie_w, movie_h;
-	u32 movie_size;
+  u32 movie_w, movie_h;
+  u32 movie_size;
   wxImage* cache_image_;
   double cache_image_zoom_;
 
-  struct trackitem { double cr1; double cr2; double ci1; double ci2 ; };
+  struct trackitem
+  {
+    double cr1;
+    double cr2;
+    double ci1;
+    double ci2;
+  };
   vector<trackitem> track;
 
   wxTimer refresh_timer_;
@@ -86,23 +98,22 @@ class WXDLLEXPORT RenderCtrl : public wxControl {
 
   DECLARE_EVENT_TABLE()
 
-public:
+  public:
   RenderCtrl(FractalSpec&);
-	virtual ~RenderCtrl();
-	void Init();
+  virtual ~RenderCtrl();
+  void Init();
 
-  bool Create(wxWindow *parent,
-		wxWindowID id,
-		const wxPoint& pos = wxDefaultPosition,
-		const wxSize& size = wxDefaultSize,
-		const wxString& name = g_render_ctrl_string);
+  bool Create(
+      wxWindow* parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition,
+      const wxSize& size = wxDefaultSize,
+      const wxString& name = g_render_ctrl_string);
 
-	virtual bool Destroy();
+  virtual bool Destroy();
 
   //
 
-	void SetPos(double pos);
-	double GetPos();
+  void SetPos(double pos);
+  double GetPos();
 
   void SetBailout(u32 bailout);
   u32 GetBailout();
@@ -117,7 +128,7 @@ public:
   void SetZoom(double);
 
   void SetPalette(const ColorArray&);
-	ColorArray GetColorArray();
+  ColorArray GetColorArray();
 
   void SetSuperSample(u32 i);
   u32 GetSuperSample();
@@ -140,4 +151,10 @@ END_DECLARE_EVENT_TYPES()
 
 typedef void (wxEvtHandler::*RenderEventFunction)(RenderEvent&);
 
-#define EVT_RENDER_HASCHANGED(id, fn) DECLARE_EVENT_TABLE_ENTRY(wxEVT_RENDER_HASCHANGED, id, -1, (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction) (RenderEventFunction) & fn, (wxObject *) NULL),
+#define EVT_RENDER_HASCHANGED(id, fn)                                   \
+  DECLARE_EVENT_TABLE_ENTRY(                                            \
+      wxEVT_RENDER_HASCHANGED, id, -1,                                  \
+      (wxObjectEventFunction)(wxEventFunction)(wxCommandEventFunction)( \
+          RenderEventFunction)&fn,                                      \
+      (wxObject*)NULL)                                                  \
+  ,

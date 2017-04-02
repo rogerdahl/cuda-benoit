@@ -13,17 +13,17 @@ A palette document:
 
 // boost::serialization
 // #define BOOST_LIB_DIAGNOSTIC
-#include <boost/archive/xml_oarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
-#include <boost/serialization/split_free.hpp>
-#include <boost/serialization/nvp.hpp>
+#include <boost/archive/xml_oarchive.hpp>
 #include <boost/serialization/list.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/split_free.hpp>
 
 // boost::filesystem
 #define BOOST_FILESYSTEM_VERSION 3
-#include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/exception.hpp>
+#include <boost/filesystem/fstream.hpp>
+#include <boost/filesystem/operations.hpp>
 
 // STL
 #include <list>
@@ -36,8 +36,9 @@ A palette document:
 // Fractal parameters.
 // ---------------------------------------------------------------------------
 
-class FractalSpec {
-public:
+class FractalSpec
+{
+  public:
   FractalSpec();
   ~FractalSpec();
 
@@ -49,44 +50,46 @@ public:
 
   void Init();
 
-private:
+  private:
   // serialization
   friend class boost::serialization::access;
-  template<class Archive>
-  void serialize(Archive & ar, const unsigned int version) {
-    ar & boost::serialization::make_nvp("center_r", center_r_);
-	  ar & boost::serialization::make_nvp("center_i", center_i_);
-	  ar & boost::serialization::make_nvp("bailout", bailout_);
-    ar & boost::serialization::make_nvp("zoom_begin", zoom_begin_);
-		ar & boost::serialization::make_nvp("zoom_end", zoom_end_);
+  template <class Archive>
+  void serialize(Archive& ar, const unsigned int version)
+  {
+    ar& boost::serialization::make_nvp("center_r", center_r_);
+    ar& boost::serialization::make_nvp("center_i", center_i_);
+    ar& boost::serialization::make_nvp("bailout", bailout_);
+    ar& boost::serialization::make_nvp("zoom_begin", zoom_begin_);
+    ar& boost::serialization::make_nvp("zoom_end", zoom_end_);
   }
 };
-
 
 // ---------------------------------------------------------------------------
 // Temporal Palette.
 // ---------------------------------------------------------------------------
 
-
 // ---------------------------------------------------------------------------
 // Color.
 // ---------------------------------------------------------------------------
 
-class Color {
-public:
-	Color();
-	Color(const u8, const u8, const u8);
-	~Color();
-	u8 red_, green_, blue_;
-private:
-	// serialization
-	friend class boost::serialization::access;
-	template<class Archive>
-	void serialize(Archive & ar, const unsigned int version) {
-		ar & boost::serialization::make_nvp("red", red_);
-		ar & boost::serialization::make_nvp("green", green_);
-		ar & boost::serialization::make_nvp("blue", blue_);
-	}
+class Color
+{
+  public:
+  Color();
+  Color(const u8, const u8, const u8);
+  ~Color();
+  u8 red_, green_, blue_;
+
+  private:
+  // serialization
+  friend class boost::serialization::access;
+  template <class Archive>
+  void serialize(Archive& ar, const unsigned int version)
+  {
+    ar& boost::serialization::make_nvp("red", red_);
+    ar& boost::serialization::make_nvp("green", green_);
+    ar& boost::serialization::make_nvp("blue", blue_);
+  }
 };
 
 typedef std::vector<Color> ColorArray;
@@ -97,10 +100,12 @@ typedef std::vector<Color> ColorArray;
 
 typedef double Pos;
 
-class SpatialKey {
+class SpatialKey
+{
   friend class TemporalPaletteCtrl;
   friend class PosLessThan;
-public:
+
+  public:
   SpatialKey();
   SpatialKey(const Pos pos, const Color& color);
   ~SpatialKey();
@@ -108,22 +113,26 @@ public:
   Pos GetPos();
   void SetColor(const Color& color);
   Color& GetColor();
-private:
+
+  private:
   Pos pos_;
   Color color_;
 
   // Serialization.
   friend class boost::serialization::access;
-  template<class Archive>
-  void serialize(Archive & ar, const unsigned int version) {
-    ar & boost::serialization::make_nvp("pos", pos_);
-    ar & boost::serialization::make_nvp("color", color_);
+  template <class Archive>
+  void serialize(Archive& ar, const unsigned int version)
+  {
+    ar& boost::serialization::make_nvp("pos", pos_);
+    ar& boost::serialization::make_nvp("color", color_);
   }
 };
 
-class PosLessThan : std::binary_function<SpatialKey, SpatialKey, bool> {
-public:
-  bool operator()(const SpatialKey& m1, const SpatialKey& m2) const {
+class PosLessThan : std::binary_function<SpatialKey, SpatialKey, bool>
+{
+  public:
+  bool operator()(const SpatialKey& m1, const SpatialKey& m2) const
+  {
     return m1.pos_ < m2.pos_;
   }
 };
@@ -134,10 +143,12 @@ typedef std::list<SpatialKey> SpatialKeys;
 // TemporalKey.
 // ---------------------------------------------------------------------------
 
-class TemporalKey {
+class TemporalKey
+{
   friend class TemporalPalette;
   friend class TemporalPosLessThan;
-public:
+
+  public:
   TemporalKey();
   TemporalKey(const Pos pos, const SpatialKeys& spatial_keys);
   ~TemporalKey();
@@ -145,22 +156,26 @@ public:
   Pos GetPos();
   void SetSpatialKeys(const SpatialKeys& spatial_keys);
   SpatialKeys& GetSpatialKeys();
-private:
+
+  private:
   Pos pos_;
   SpatialKeys spatial_keys_;
 
   // Serialization.
   friend class boost::serialization::access;
-  template<class Archive>
-  void serialize(Archive & ar, const unsigned int version) {
-    ar & boost::serialization::make_nvp("pos", pos_);
-    ar & boost::serialization::make_nvp("spatial_keys", spatial_keys_);
+  template <class Archive>
+  void serialize(Archive& ar, const unsigned int version)
+  {
+    ar& boost::serialization::make_nvp("pos", pos_);
+    ar& boost::serialization::make_nvp("spatial_keys", spatial_keys_);
   }
 };
 
-class TemporalPosLessThan : std::binary_function<TemporalKey, TemporalKey, bool> {
-public:
-  bool operator()(const TemporalKey& m1, const TemporalKey& m2) const {
+class TemporalPosLessThan : std::binary_function<TemporalKey, TemporalKey, bool>
+{
+  public:
+  bool operator()(const TemporalKey& m1, const TemporalKey& m2) const
+  {
     return m1.pos_ < m2.pos_;
   }
 };
@@ -171,50 +186,56 @@ typedef std::list<TemporalKey> TemporalKeys;
 // TemporalPalette.
 // ---------------------------------------------------------------------------
 
-class TemporalPalette {
-public:
+class TemporalPalette
+{
+  public:
   TemporalPalette();
   ~TemporalPalette();
   void Init();
-  ColorArray GetColorArray(const SpatialKeys& spatial_keys, const u32 num_colors);
-	ColorArray GetColorArray(const Pos pos, const u32 num_colors);
-	Color GetColor(const Pos pos);
-	void SetTopColor(const Color& color);
-	Color& GetTopColor();
-	SpatialKey& GetTopSpatialKey();
-	void SetTopTemporalKey(const TemporalKey& temporal_key);
-	TemporalKey& GetTopTemporalKey();
-	TemporalKeys& GetTemporalKeys();
+  ColorArray GetColorArray(
+      const SpatialKeys& spatial_keys, const u32 num_colors);
+  ColorArray GetColorArray(const Pos pos, const u32 num_colors);
+  Color GetColor(const Pos pos);
+  void SetTopColor(const Color& color);
+  Color& GetTopColor();
+  SpatialKey& GetTopSpatialKey();
+  void SetTopTemporalKey(const TemporalKey& temporal_key);
+  TemporalKey& GetTopTemporalKey();
+  TemporalKeys& GetTemporalKeys();
   void CreateTemporalKey(const Pos);
   void CreateTemporalKey(const Pos, const SpatialKeys& spatial_keys);
-private:
+
+  private:
   TemporalKeys temporal_keys_;
 
-	// Serialization.
-	friend class boost::serialization::access;
-	template<class Archive>
-	void serialize(Archive & ar, const unsigned int version) {
-    ar & boost::serialization::make_nvp("temporal_keys", temporal_keys_);
-	}
+  // Serialization.
+  friend class boost::serialization::access;
+  template <class Archive>
+  void serialize(Archive& ar, const unsigned int version)
+  {
+    ar& boost::serialization::make_nvp("temporal_keys", temporal_keys_);
+  }
 };
 
 // ---------------------------------------------------------------------------
 // Track.
 // ---------------------------------------------------------------------------
 
-
-class Track {
+class Track
+{
   FractalSpec fractal_spec_;
   TemporalPalette temporal_palette_;
 
   // Serialization.
   friend class boost::serialization::access;
-  template<class Archive>
-  void serialize(Archive & ar, const unsigned int version) {
-    ar & boost::serialization::make_nvp("fractal_spec", fractal_spec_);
-    ar & boost::serialization::make_nvp("temporal_palette", temporal_palette_);
+  template <class Archive>
+  void serialize(Archive& ar, const unsigned int version)
+  {
+    ar& boost::serialization::make_nvp("fractal_spec", fractal_spec_);
+    ar& boost::serialization::make_nvp("temporal_palette", temporal_palette_);
   }
-public:
+
+  public:
   Track();
   ~Track();
   void Init();

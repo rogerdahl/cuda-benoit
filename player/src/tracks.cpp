@@ -1,8 +1,8 @@
 #include "pch.h"
 
+#include "config.h"
 #include "track.h"
 #include "tracks.h"
-#include "config.h"
 
 // The track document used in the editor is based on STL and Boost. To use the
 // track in the CUDA kernels, it is converted to a hierarchy of structs. In the
@@ -18,21 +18,26 @@ using namespace std;
 using namespace boost;
 using namespace boost::filesystem;
 
-StaticTracks* ReadTracks(const path& track_dir_path) {
+StaticTracks* ReadTracks(const path& track_dir_path)
+{
   StaticTracks* tracks = new StaticTracks;
   memset(tracks, 0, sizeof(StaticTracks));
 
   u32 track_idx(0);
-  for (directory_iterator itr(track_dir_path); itr != directory_iterator(); ++itr) {
+  for (directory_iterator itr(track_dir_path); itr != directory_iterator();
+       ++itr) {
     if (tracks->count_ == MAX_TRACKS) {
-      cout << format("Warning: Reached limit of %d tracks and skipped remaining tracks.") % MAX_TRACKS << endl;
+      cout << format(
+                  "Warning: Reached limit of %d tracks and skipped remaining "
+                  "tracks.")
+                  % MAX_TRACKS
+           << endl;
       break;
     }
     if (is_regular_file(*itr) && itr->path().extension() == ".benoit") {
       try {
         TrackToStatic(*itr, tracks->tracks_[track_idx++]);
-      }
-      catch(std::exception&) {
+      } catch (std::exception&) {
         continue;
       }
       ++tracks->count_;
@@ -63,8 +68,14 @@ StaticTracks* ReadTracks(const path& track_dir_path) {
     }
   }
   if (lowest_bailout != highest_bailout) {
-    cout << format("Warning: Changed the bailout value of one or more tracks to %d.") % lowest_bailout << endl;
-    cout << "Colors will not be rendered correctly on the tracks that were changed." << endl;
+    cout << format(
+                "Warning: Changed the bailout value of one or more tracks to "
+                "%d.")
+                % lowest_bailout
+         << endl;
+    cout << "Colors will not be rendered correctly on the tracks that were "
+            "changed."
+         << endl;
     cout << "Fix this by editing tracks to use the same bailout value." << endl;
   }
 
@@ -73,12 +84,12 @@ StaticTracks* ReadTracks(const path& track_dir_path) {
   return tracks;
 }
 
-void TrackToStatic(const path& track_path, StaticTrack& track_struct) {
+void TrackToStatic(const path& track_path, StaticTrack& track_struct)
+{
   Track track;
   try {
     track.Load(track_path);
-  }
-  catch (std::exception& e) {
+  } catch (std::exception& e) {
     cout << "Track skipped because of error: " << track_path.filename() << endl;
     cout << e.what() << endl;
     throw;
@@ -88,42 +99,49 @@ void TrackToStatic(const path& track_path, StaticTrack& track_struct) {
   //
   TemporalPalette temporal_palette(track.GetTemporalPalette());
   TemporalKeys sorted_temporal_keys(temporal_palette.GetTemporalKeys());
-	sorted_temporal_keys.sort(TemporalPosLessThan());
-	// Add "virtual" sliders at ends.
-	if (sorted_temporal_keys.front().GetPos() > 0.0) {
-		TemporalKey temporal_key(0.0, sorted_temporal_keys.front().GetSpatialKeys());
-		sorted_temporal_keys.push_front(temporal_key);
-	}
-	if (sorted_temporal_keys.back().GetPos() < 1.0) {
-		TemporalKey p(1.0, sorted_temporal_keys.back().GetSpatialKeys());
-		sorted_temporal_keys.push_back(p);
-	}
+  sorted_temporal_keys.sort(TemporalPosLessThan());
+  // Add "virtual" sliders at ends.
+  if (sorted_temporal_keys.front().GetPos() > 0.0) {
+    TemporalKey temporal_key(0.0, sorted_temporal_keys.front().GetSpatialKeys());
+    sorted_temporal_keys.push_front(temporal_key);
+  }
+  if (sorted_temporal_keys.back().GetPos() < 1.0) {
+    TemporalKey p(1.0, sorted_temporal_keys.back().GetSpatialKeys());
+    sorted_temporal_keys.push_back(p);
+  }
   int spatial_idx(0);
-	for (TemporalKeys::iterator iter = sorted_temporal_keys.begin(); iter != sorted_temporal_keys.end(); ++iter) {
+  for (TemporalKeys::iterator iter = sorted_temporal_keys.begin();
+       iter != sorted_temporal_keys.end(); ++iter) {
     // Get spatial palette for this temporal palette key.
-	  // Sort palette.
-	  SpatialKeys sorted_spatial_keys(iter->GetSpatialKeys());
-	  sorted_spatial_keys.sort(PosLessThan());
-	  // Add "virtual" sliders at ends.
-	  if (sorted_spatial_keys.front().GetPos() != 0.0) {
-		  Color& color(sorted_spatial_keys.front().GetColor());
-		  SpatialKey spatial_key(0.0, color);
-		  sorted_spatial_keys.push_front(spatial_key);
-	  }
-	  if (sorted_spatial_keys.back().GetPos() != 1.0) {
-		  Color& color(sorted_spatial_keys.back().GetColor());
-		  SpatialKey spatial_key(1.0, color);
-		  sorted_spatial_keys.push_back(spatial_key);
-	  }
-    track_struct.temporal_palette_.temporal_palette_keys_[spatial_idx].pos_ = iter->GetPos();
+    // Sort palette.
+    SpatialKeys sorted_spatial_keys(iter->GetSpatialKeys());
+    sorted_spatial_keys.sort(PosLessThan());
+    // Add "virtual" sliders at ends.
+    if (sorted_spatial_keys.front().GetPos() != 0.0) {
+      Color& color(sorted_spatial_keys.front().GetColor());
+      SpatialKey spatial_key(0.0, color);
+      sorted_spatial_keys.push_front(spatial_key);
+    }
+    if (sorted_spatial_keys.back().GetPos() != 1.0) {
+      Color& color(sorted_spatial_keys.back().GetColor());
+      SpatialKey spatial_key(1.0, color);
+      sorted_spatial_keys.push_back(spatial_key);
+    }
+    track_struct.temporal_palette_.temporal_palette_keys_[spatial_idx].pos_ =
+        iter->GetPos();
     int color_idx(0);
-  	for (SpatialKeys::iterator iter2 = sorted_spatial_keys.begin(); iter2 != sorted_spatial_keys.end(); ++iter2) {
-      StaticSpatialPaletteKey& color = track_struct.temporal_palette_.temporal_palette_keys_[spatial_idx].spatial_palette_keys_[color_idx++];
+    for (SpatialKeys::iterator iter2 = sorted_spatial_keys.begin();
+         iter2 != sorted_spatial_keys.end(); ++iter2) {
+      StaticSpatialPaletteKey& color =
+          track_struct.temporal_palette_.temporal_palette_keys_[spatial_idx]
+              .spatial_palette_keys_[color_idx++];
       color.pos_ = iter2->GetPos();
-      color.color_ = make_uchar4(iter2->GetColor().red_, iter2->GetColor().green_, iter2->GetColor().blue_, 0);
+      color.color_ = make_uchar4(
+          iter2->GetColor().red_, iter2->GetColor().green_,
+          iter2->GetColor().blue_, 0);
     }
     ++spatial_idx;
-	}
+  }
   //
   // FractalSpec.
   //

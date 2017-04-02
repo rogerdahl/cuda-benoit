@@ -1,5 +1,5 @@
 #include "cutil.h"
-//nclude <cutil_math.h>
+// nclude <cutil_math.h>
 #include "cutil_inline_runtime.h"
 
 #include "../../lib/int_types.h"
@@ -7,8 +7,8 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-#include "kernels.h"
 #include "config.h"
+#include "kernels.h"
 #include "tracks.h"
 
 // Constants.
@@ -54,7 +54,7 @@ extern Configuration g_cfg;
 // Screen aspect ratio.
 double g_aspect_ratio;
 
-// The number of fractal boxes stored in the fractal box buffer. 
+// The number of fractal boxes stored in the fractal box buffer.
 u32 g_num_fractal_boxes;
 
 // The zoom step adjusted for boxes per frame and vsync interval.
@@ -72,7 +72,7 @@ double g_log_zoom_step;
 // a pointer to the memory to the kernel does NOT work (at least not on 1.3).
 // The problem may be that the compiler loses track of which kind of memory it
 // is, and tries to read from it with a "load global" instead of a "load
-// constant". The two are different address spaces on caps < 2.0. 
+// constant". The two are different address spaces on caps < 2.0.
 StaticTracks* g_tracks;
 __constant__ StaticTracks d_tracks;
 
@@ -95,7 +95,7 @@ size_t transform_buf_pitch_unreduced;
 uchar4* d_transform_buf_reduced;
 size_t transform_buf_pitch_reduced;
 
-// "Intra" zoom values are used in the log scale transform, for rendering 
+// "Intra" zoom values are used in the log scale transform, for rendering
 // a single frame. They do not change while the zoom is running.
 double g_intra_zoom_end;
 double g_log_intra_zoom_end;
@@ -121,9 +121,7 @@ u32 g_compute_capability_minor;
 extern u32 g_cuda_device;
 
 void Initialize(
-  u32 num_resources,
-  cudaGraphicsResource** resources,
-  StaticTracks* tracks)
+    u32 num_resources, cudaGraphicsResource** resources, StaticTracks* tracks)
 {
   g_tracks = tracks;
   g_fractal_box_w = g_cfg.screen_w_;
@@ -131,19 +129,21 @@ void Initialize(
   fractal_box_total = 2 * g_fractal_box_w + 2 * fractal_box_h;
 
   // Compute capability.
-	cudaDeviceProp prop;
+  cudaDeviceProp prop;
   cudaGetDeviceProperties(&prop, g_cuda_device);
   g_compute_capability_major = prop.major;
   g_compute_capability_minor = prop.minor;
 
   // Map textures that are shared with OpenGL.
   for (u32 i(0); i < num_resources; ++i) {
-    cutilSafeCall(cudaGraphicsSubResourceGetMappedArray(
-      &d_transform_cuda_array, resources[i], 0, 0));
+    cutilSafeCall(
+        cudaGraphicsSubResourceGetMappedArray(
+            &d_transform_cuda_array, resources[i], 0, 0));
   }
 
   // Screen aspect ratio.
-  g_aspect_ratio = static_cast<double>(g_cfg.screen_w_) / static_cast<double>(g_cfg.screen_h_);
+  g_aspect_ratio = static_cast<double>(g_cfg.screen_w_)
+                   / static_cast<double>(g_cfg.screen_h_);
 
   // Set g_intra_zoom_end to the zoom that will create a fractal box that is the
   // width of one pixel. This will be the size of the fractal box when it is
@@ -155,7 +155,9 @@ void Initialize(
   g_log_intra_zoom_end = log(g_intra_zoom_end);
 
   // Adjust zoom step for boxes per frame and vsync interval.
-  g_zoom_step = pow(g_cfg.zoom_step_, 1.0 / g_cfg.boxes_per_frame_ / g_cfg.vsync_interval_);
+  g_zoom_step =
+      pow(g_cfg.zoom_step_,
+          1.0 / g_cfg.boxes_per_frame_ / g_cfg.vsync_interval_);
 
   // Set the fractal box resolution to the resolution required to go all the way
   // to g_intra_zoom_end.
@@ -163,7 +165,8 @@ void Initialize(
   // The range of yn in the transform kernel is (0 - 0.5), not (0 - 1). This is
   // because each section goes from the center of the screen to one edge, which
   // halves the area.
-  g_num_fractal_boxes = static_cast<u32>(log(0.5 / g_intra_zoom_end) / log(g_zoom_step));
+  g_num_fractal_boxes =
+      static_cast<u32>(log(0.5 / g_intra_zoom_end) / log(g_zoom_step));
 
   // Logarithm of the zoom step is required in the log scale transform.
   g_log_zoom_step = log(g_zoom_step);
@@ -178,46 +181,60 @@ void Initialize(
   // the buffer. This enables sampling between the two boxes to get interpolated
   // sampling within a given fractal box without getting interpolation between
   // different fractal boxes.
-  cudaChannelFormatDesc channelDesc(cudaCreateChannelDesc(32, 0, 0, 0,
-    cudaChannelFormatKindFloat));
-  cutilSafeCall(cudaMallocArray(&d_fractal_boxes_cuda_array, &channelDesc,
-    fractal_box_total, g_num_fractal_boxes * 2));
+  cudaChannelFormatDesc channelDesc(
+      cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat));
+  cutilSafeCall(
+      cudaMallocArray(
+          &d_fractal_boxes_cuda_array, &channelDesc, fractal_box_total,
+          g_num_fractal_boxes * 2));
 
   // Buffer for a single box of fractal data, unreduced supersample.
-  cutilSafeCall(cudaMalloc(&d_fractal_box_unreduced_buf, fractal_box_total * 
-    g_cfg.fractal_box_ss_ * sizeof(float)));
+  cutilSafeCall(
+      cudaMalloc(
+          &d_fractal_box_unreduced_buf,
+          fractal_box_total * g_cfg.fractal_box_ss_ * sizeof(float)));
 
   // Buffer for a single box of fractal data, reduced supersample.
-  cutilSafeCall(cudaMalloc(&d_fractal_box_reduced_buf, fractal_box_total *
-    sizeof(float)));
+  cutilSafeCall(
+      cudaMalloc(&d_fractal_box_reduced_buf, fractal_box_total * sizeof(float)));
 
   // Copy tracks to device buffer.
-  cutilSafeCall(cudaMemcpyToSymbol(d_tracks, (void*)g_tracks, sizeof(StaticTracks)));
+  cutilSafeCall(
+      cudaMemcpyToSymbol(d_tracks, (void*)g_tracks, sizeof(StaticTracks)));
 
   // Buffers for palettes. These are required because kernels can't write
   // directly to CUDA Arrays on caps < 2.0.
-  cutilSafeCall(cudaMalloc(&d_palette_buf[0], tracks->shared_bailout_ * sizeof(uchar4)));
-  cutilSafeCall(cudaMalloc(&d_palette_buf[1], tracks->shared_bailout_ * sizeof(uchar4)));
+  cutilSafeCall(
+      cudaMalloc(&d_palette_buf[0], tracks->shared_bailout_ * sizeof(uchar4)));
+  cutilSafeCall(
+      cudaMalloc(&d_palette_buf[1], tracks->shared_bailout_ * sizeof(uchar4)));
 
   // CUDA Arrays for palettes.
-  cudaChannelFormatDesc channelDesc2(cudaCreateChannelDesc(8, 8, 8, 8,
-    cudaChannelFormatKindUnsigned));
-  cutilSafeCall(cudaMallocArray(&d_palette_cuda_arrays[0], &channelDesc2,
-    tracks->shared_bailout_ * sizeof(uchar4), 1));
-  cutilSafeCall(cudaMallocArray(&d_palette_cuda_arrays[1], &channelDesc2,
-    tracks->shared_bailout_ * sizeof(uchar4), 1));
+  cudaChannelFormatDesc channelDesc2(
+      cudaCreateChannelDesc(8, 8, 8, 8, cudaChannelFormatKindUnsigned));
+  cutilSafeCall(
+      cudaMallocArray(
+          &d_palette_cuda_arrays[0], &channelDesc2,
+          tracks->shared_bailout_ * sizeof(uchar4), 1));
+  cutilSafeCall(
+      cudaMallocArray(
+          &d_palette_cuda_arrays[1], &channelDesc2,
+          tracks->shared_bailout_ * sizeof(uchar4), 1));
 
   // Create a 2D array to which the transform kernel will write the transformed
   // image data.
-  cutilSafeCall(cudaMallocPitch(&d_transform_buf_unreduced,
-    &transform_buf_pitch_unreduced, g_cfg.screen_w_ * sizeof(float) *
-    g_cfg.transform_ss_x_, g_cfg.screen_h_ * g_cfg.transform_ss_y_));
+  cutilSafeCall(
+      cudaMallocPitch(
+          &d_transform_buf_unreduced, &transform_buf_pitch_unreduced,
+          g_cfg.screen_w_ * sizeof(float) * g_cfg.transform_ss_x_,
+          g_cfg.screen_h_ * g_cfg.transform_ss_y_));
 
   // Create a 2D array to which the reduce kernel will write the reduced
   // image data.
-  cutilSafeCall(cudaMallocPitch(&d_transform_buf_reduced,
-    &transform_buf_pitch_reduced, g_cfg.screen_w_ * sizeof(uchar4),
-    g_cfg.screen_h_));
+  cutilSafeCall(
+      cudaMallocPitch(
+          &d_transform_buf_reduced, &transform_buf_pitch_reduced,
+          g_cfg.screen_w_ * sizeof(uchar4), g_cfg.screen_h_));
 
   // Set up texture for fractal box.
 
@@ -242,7 +259,7 @@ void Initialize(
   // and possibly fix.
   d_fractal_boxes_tex.addressMode[0] = cudaAddressModeWrap;
   d_fractal_boxes_tex.addressMode[1] = cudaAddressModeWrap;
-  //d_fractal_boxes_tex.filterMode = cudaFilterModePoint;
+  // d_fractal_boxes_tex.filterMode = cudaFilterModePoint;
   d_fractal_boxes_tex.filterMode = cudaFilterModeLinear;
   d_fractal_boxes_tex.normalized = true;
   // Bind a texture to array. Uses the C++ api version of
@@ -291,8 +308,9 @@ u32 DivUp(u32 a, u32 b)
 
 // Clamp a value on host. Functions for Clamping on the device are already in
 // the cuda library.
-template<typename FP>
-FP Clamp(FP v, FP a, FP b) {
+template <typename FP>
+FP Clamp(FP v, FP a, FP b)
+{
   if (v < a) {
     return a;
   }
@@ -309,12 +327,15 @@ FP Clamp(FP v, FP a, FP b) {
 // off the screen is required. This is the same value that would be needed for
 // generating the corresponding full fractal image without using a log scale
 // map.
-double ZoomFull(double zoom_level) {
-  return zoom_level * pow(g_zoom_step, static_cast<double>(g_num_fractal_boxes));
+double ZoomFull(double zoom_level)
+{
+  return zoom_level
+         * pow(g_zoom_step, static_cast<double>(g_num_fractal_boxes));
 }
 
 // Clamp zoom level to the highest and lowest values supported.
-double ZoomClamp(double zoom) {
+double ZoomClamp(double zoom)
+{
   if (zoom > MAX_ZOOM) {
     return MAX_ZOOM;
   }
@@ -333,10 +354,8 @@ double ZoomClamp(double zoom) {
 
 template <typename FP>
 __global__ void MandelbrotKernel(
-  float* d_fractal_box_unreduced_buf,
-  u32 w, u32 h,
-  FP cr1, FP ci1, FP cr2, FP ci2,
-  u32 bailout)
+    float* d_fractal_box_unreduced_buf, u32 w, u32 h, FP cr1, FP ci1, FP cr2,
+    FP ci2, u32 bailout)
 {
   u32 n(blockIdx.x * blockDim.x + threadIdx.x);
 
@@ -356,11 +375,16 @@ __global__ void MandelbrotKernel(
   // through the corners in the fractal boxes. They're caused by inexact sample
   // locations in the transform kernel.
   //
-  // On caps 1.3, only one kernel can run at a time, so it is important to create
-  // as many threads as possible. Because of that, it was decided to have a single
-  // kernel handle all sides of the fractal boxes. The extra logic takes very little
-  // time compared to the mandelbrot escape time calculation itself but if support
-  // for caps 1.3 is dropped, it would be cleaner to issue 4 times as many kernels,
+  // On caps 1.3, only one kernel can run at a time, so it is important to
+  // create
+  // as many threads as possible. Because of that, it was decided to have a
+  // single
+  // kernel handle all sides of the fractal boxes. The extra logic takes very
+  // little
+  // time compared to the mandelbrot escape time calculation itself but if
+  // support
+  // for caps 1.3 is dropped, it would be cleaner to issue 4 times as many
+  // kernels,
   // and leave the logic related to selecting which side in the box to calculate
   // in host code.
 
@@ -402,15 +426,15 @@ __global__ void MandelbrotKernel(
 
   FP zi(0.0), zr(0.0), zr2(0.0), zi2(0.0), zit(0.0);
   u32 iter(bailout);
-  while(--iter && zr2 + zi2 < 4.0) {
+  while (--iter && zr2 + zi2 < 4.0) {
     zit = zr * zi;
     zi = zit + zit + ci;
-    zr =(zr2 - zi2) + cr;
+    zr = (zr2 - zi2) + cr;
     zr2 = zr * zr;
     zi2 = zi * zi;
   }
 
-  if(iter) {
+  if (iter) {
     iter = bailout - iter;
   }
 
@@ -431,24 +455,21 @@ void RunMandelbrotKernel(double cr1, double ci1, double cr2, double ci2)
   dim3 block_dim(threads_per_block_x, threads_per_block_y);
 
   // Dimension of the grid (number of blocks to launch).
-  dim3 grid_dim(DivUp(fractal_box_total * g_cfg.fractal_box_ss_, threads_per_block_x));
+  dim3 grid_dim(
+      DivUp(fractal_box_total * g_cfg.fractal_box_ss_, threads_per_block_x));
 
   if (g_cfg.single_precision_) {
     MandelbrotKernel<float><<<grid_dim, block_dim, 0>>>(
-      d_fractal_box_unreduced_buf,
-      g_fractal_box_w * g_cfg.fractal_box_ss_,
-      fractal_box_h * g_cfg.fractal_box_ss_,
-      static_cast<float>(cr1), static_cast<float>(ci1),
-      static_cast<float>(cr2), static_cast<float>(ci2),
-      g_tracks->shared_bailout_);
+        d_fractal_box_unreduced_buf, g_fractal_box_w * g_cfg.fractal_box_ss_,
+        fractal_box_h * g_cfg.fractal_box_ss_, static_cast<float>(cr1),
+        static_cast<float>(ci1), static_cast<float>(cr2),
+        static_cast<float>(ci2), g_tracks->shared_bailout_);
   }
   else {
     MandelbrotKernel<double><<<grid_dim, block_dim, 0>>>(
-      d_fractal_box_unreduced_buf,
-      g_fractal_box_w * g_cfg.fractal_box_ss_,
-      fractal_box_h * g_cfg.fractal_box_ss_,
-      cr1, ci1, cr2, ci2,
-      g_tracks->shared_bailout_);
+        d_fractal_box_unreduced_buf, g_fractal_box_w * g_cfg.fractal_box_ss_,
+        fractal_box_h * g_cfg.fractal_box_ss_, cr1, ci1, cr2, ci2,
+        g_tracks->shared_bailout_);
   }
 
   cutilCheckMsg("MandelbrotKernel failed");
@@ -459,10 +480,7 @@ void RunMandelbrotKernel(double cr1, double ci1, double cr2, double ci2)
 // ----------------------------------------------------------------------------
 
 __global__ void FractalReduceKernel(
-  float* dst,
-  float* src,
-  u32 w,
-  u32 fractal_box_ss)
+    float* dst, float* src, u32 w, u32 fractal_box_ss)
 {
   u32 x(blockIdx.x * blockDim.x + threadIdx.x);
 
@@ -489,10 +507,8 @@ void RunFractalReduceKernel()
   dim3 grid_dim(DivUp(fractal_box_total, threads_per_block_x));
 
   FractalReduceKernel<<<grid_dim, block_dim, 0>>>(
-    d_fractal_box_reduced_buf,
-    d_fractal_box_unreduced_buf,
-    fractal_box_total,
-    g_cfg.fractal_box_ss_);
+      d_fractal_box_reduced_buf, d_fractal_box_unreduced_buf, fractal_box_total,
+      g_cfg.fractal_box_ss_);
 
   cutilCheckMsg("FractalReduceKernel failed");
 
@@ -505,12 +521,14 @@ void RunFractalReduceKernel()
   // sampling location was shifted from between the two boxes to in the center
   // of the even box.
   int s(fractal_box_total * sizeof(float));
-  cutilSafeCall(cudaMemcpyToArray(d_fractal_boxes_cuda_array, 0,
-    g_fractal_box_insert_pos * 2, d_fractal_box_reduced_buf, s,
-    cudaMemcpyDeviceToDevice));
-  cutilSafeCall(cudaMemcpyToArray(d_fractal_boxes_cuda_array, 0,
-    g_fractal_box_insert_pos * 2 + 1, d_fractal_box_reduced_buf, s,
-    cudaMemcpyDeviceToDevice));
+  cutilSafeCall(
+      cudaMemcpyToArray(
+          d_fractal_boxes_cuda_array, 0, g_fractal_box_insert_pos * 2,
+          d_fractal_box_reduced_buf, s, cudaMemcpyDeviceToDevice));
+  cutilSafeCall(
+      cudaMemcpyToArray(
+          d_fractal_boxes_cuda_array, 0, g_fractal_box_insert_pos * 2 + 1,
+          d_fractal_box_reduced_buf, s, cudaMemcpyDeviceToDevice));
 }
 
 // ----------------------------------------------------------------------------
@@ -519,38 +537,34 @@ void RunFractalReduceKernel()
 
 __device__ u8 u8Lerp(u8 a, u8 b, float t)
 {
-  return (u8)(static_cast<float>(a) + t * (static_cast<float>(b) - static_cast<float>(a)));
+  return (u8)(
+      static_cast<float>(a)
+      + t * (static_cast<float>(b) - static_cast<float>(a)));
 }
 
 __device__ uchar4 uchar4Lerp(uchar4 a, uchar4 b, float t)
 {
   return make_uchar4(
-    u8Lerp(a.x, b.x, t),
-    u8Lerp(a.y, b.y, t),
-    u8Lerp(a.z, b.z, t),
-    0);
+      u8Lerp(a.x, b.x, t), u8Lerp(a.y, b.y, t), u8Lerp(a.z, b.z, t), 0);
 }
 
 __device__ uchar4 ColorLerp(StaticTemporalPaletteKey& key, float color_pos)
 {
-  for (int i(0); ; ++i) {
+  for (int i(0);; ++i) {
     float pos1(key.spatial_palette_keys_[i].pos_);
     float pos2(key.spatial_palette_keys_[i + 1].pos_);
     if (color_pos >= pos1 && color_pos <= pos2) {
       float d((color_pos - pos1) / (pos2 - pos1));
       return uchar4Lerp(
-        key.spatial_palette_keys_[i].color_,
-        key.spatial_palette_keys_[i + 1].color_,
-        d);
+          key.spatial_palette_keys_[i].color_,
+          key.spatial_palette_keys_[i + 1].color_, d);
     }
   }
 }
 
 __global__ void GeneratePaletteKernel(
-  uchar4* d_palette_buf,
-  u32 g_track_index,
-  float temporal_palette_pos,
-  u32 bailout)
+    uchar4* d_palette_buf, u32 g_track_index, float temporal_palette_pos,
+    u32 bailout)
 {
   u32 palette_idx(blockIdx.x * blockDim.x + threadIdx.x);
 
@@ -558,14 +572,18 @@ __global__ void GeneratePaletteKernel(
     return;
   }
 
-  StaticTemporalPalette& temporal_palette_(d_tracks.tracks_[g_track_index].temporal_palette_);
-  float color_pos(static_cast<float>(palette_idx) / static_cast<float>(bailout));
+  StaticTemporalPalette& temporal_palette_(
+      d_tracks.tracks_[g_track_index].temporal_palette_);
+  float color_pos(
+      static_cast<float>(palette_idx) / static_cast<float>(bailout));
 
   // Find the two temporal palette keys over which lerp should be done.
-  for (int i(0); ; ++i) {
+  for (int i(0);; ++i) {
     StaticTemporalPaletteKey& key1(temporal_palette_.temporal_palette_keys_[i]);
-    StaticTemporalPaletteKey& key2(temporal_palette_.temporal_palette_keys_[i + 1]);
-    if (temporal_palette_pos >= key1.pos_ && temporal_palette_pos <= key2.pos_) {
+    StaticTemporalPaletteKey& key2(
+        temporal_palette_.temporal_palette_keys_[i + 1]);
+    if (temporal_palette_pos >= key1.pos_
+        && temporal_palette_pos <= key2.pos_) {
       // Found the keys. Do the lerp.
       uchar4 c1(ColorLerp(key1, color_pos));
       uchar4 c2(ColorLerp(key2, color_pos));
@@ -577,9 +595,8 @@ __global__ void GeneratePaletteKernel(
 }
 
 void RunGeneratePaletteKernel(
-  uchar4* d_palette_buf, u32 g_track_index,
-  double temporal_palette_pos,
-  u32 bailout)
+    uchar4* d_palette_buf, u32 g_track_index, double temporal_palette_pos,
+    u32 bailout)
 {
   u32 threads_per_block_x(g_compute_capability_major < 2 ? 128 : 192);
   const u32 threads_per_block_y(1);
@@ -587,15 +604,15 @@ void RunGeneratePaletteKernel(
   dim3 grid_dim(DivUp(bailout, threads_per_block_x));
 
   GeneratePaletteKernel<<<grid_dim, block_dim, 0>>>(
-    d_palette_buf,
-    g_track_index,
-    static_cast<float>(temporal_palette_pos),
-    bailout);
+      d_palette_buf, g_track_index, static_cast<float>(temporal_palette_pos),
+      bailout);
 
   cutilCheckMsg("GeneratePaletteKernel failed");
 
-  cutilSafeCall(cudaMemcpyToArray(d_palette_cuda_arrays[0], 0, 0,
-    d_palette_buf, bailout * sizeof(uchar4), cudaMemcpyDeviceToDevice));
+  cutilSafeCall(
+      cudaMemcpyToArray(
+          d_palette_cuda_arrays[0], 0, 0, d_palette_buf,
+          bailout * sizeof(uchar4), cudaMemcpyDeviceToDevice));
 }
 
 // -----------------------------------
@@ -603,8 +620,7 @@ void RunGeneratePaletteKernel(
 // -----------------------------------
 
 __global__ void DebugGenerateGrayscalePaletteKernel(
-  uchar4* d_palette_buf,
-  u32 bailout)
+    uchar4* d_palette_buf, u32 bailout)
 {
   u32 palette_idx(blockIdx.x * blockDim.x + threadIdx.x);
 
@@ -612,12 +628,15 @@ __global__ void DebugGenerateGrayscalePaletteKernel(
     return;
   }
 
-  u8 v(static_cast<u8>(static_cast<float>(palette_idx) /
-    static_cast<float>(bailout) * 255.0f));
+  u8 v(
+      static_cast<u8>(
+          static_cast<float>(palette_idx) / static_cast<float>(bailout)
+          * 255.0f));
   d_palette_buf[palette_idx] = make_uchar4(v, v, v, 0);
 }
 
-void RunDebugGenerateGrayscalePalette(uchar4* d_palette_buf, u32 bailout) {
+void RunDebugGenerateGrayscalePalette(uchar4* d_palette_buf, u32 bailout)
+{
   CUDATimerRun run_palette_timer(*g_cuda_timers, kPalettes);
 
   u32 threads_per_block_x(g_compute_capability_major < 2 ? 128 : 192);
@@ -625,13 +644,15 @@ void RunDebugGenerateGrayscalePalette(uchar4* d_palette_buf, u32 bailout) {
   dim3 block_dim(threads_per_block_x, threads_per_block_y);
   dim3 grid_dim(DivUp(bailout, threads_per_block_x));
 
-  DebugGenerateGrayscalePaletteKernel<<<grid_dim, block_dim, 0>>>
-    (d_palette_buf, bailout);
+  DebugGenerateGrayscalePaletteKernel<<<grid_dim, block_dim, 0>>>(
+      d_palette_buf, bailout);
 
   cutilCheckMsg("DebugGenerateGrayscalePaletteKernel failed");
 
-  cutilSafeCall(cudaMemcpyToArray(d_palette_cuda_arrays[0], 0, 0,
-    d_palette_buf, bailout * sizeof(uchar4), cudaMemcpyDeviceToDevice));
+  cutilSafeCall(
+      cudaMemcpyToArray(
+          d_palette_cuda_arrays[0], 0, 0, d_palette_buf,
+          bailout * sizeof(uchar4), cudaMemcpyDeviceToDevice));
 }
 
 // -----------------------------------
@@ -639,24 +660,18 @@ void RunDebugGenerateGrayscalePalette(uchar4* d_palette_buf, u32 bailout) {
 // -----------------------------------
 
 __global__ void LerpPaletteBufsKernel(
-  uchar4* palette_buf1,
-  uchar4* palette_buf2,
-  float pos,
-  u32 bailout)
+    uchar4* palette_buf1, uchar4* palette_buf2, float pos, u32 bailout)
 {
   u32 palette_idx(blockIdx.x * blockDim.x + threadIdx.x);
   if (palette_idx >= bailout) {
     return;
   }
-  palette_buf1[palette_idx] = uchar4Lerp(palette_buf1[palette_idx],
-    palette_buf2[palette_idx], pos);
+  palette_buf1[palette_idx] =
+      uchar4Lerp(palette_buf1[palette_idx], palette_buf2[palette_idx], pos);
 }
 
 void RunLerpPaletteBufsKernel(
-  uchar4* palette_buf1,
-  uchar4* palette_buf2,
-  double pos,
-  u32 bailout)
+    uchar4* palette_buf1, uchar4* palette_buf2, double pos, u32 bailout)
 {
   u32 threads_per_block_x(g_compute_capability_major < 2 ? 128 : 192);
   u32 threads_per_block_y(1);
@@ -664,36 +679,39 @@ void RunLerpPaletteBufsKernel(
   dim3 grid_dim(DivUp(bailout, threads_per_block_x));
 
   LerpPaletteBufsKernel<<<grid_dim, block_dim, 0>>>(
-    d_palette_buf[0],
-    d_palette_buf[1],
-    static_cast<float>(pos),
-    bailout);
+      d_palette_buf[0], d_palette_buf[1], static_cast<float>(pos), bailout);
 
   cutilCheckMsg("LerpPaletteBufsKernel failed");
 
-  cutilSafeCall(cudaMemcpyToArray(d_palette_cuda_arrays[0], 0, 0,
-    palette_buf1, bailout * sizeof(uchar4), cudaMemcpyDeviceToDevice));
+  cutilSafeCall(
+      cudaMemcpyToArray(
+          d_palette_cuda_arrays[0], 0, 0, palette_buf1,
+          bailout * sizeof(uchar4), cudaMemcpyDeviceToDevice));
 }
 
 // Get the temporal palette position of a track given a zoom level.
-double GetTemporalPalettePosByZoomLevel(u32 track_index, double zoom_level) {
+double GetTemporalPalettePosByZoomLevel(u32 track_index, double zoom_level)
+{
   StaticTrack& track(g_tracks->tracks_[track_index]);
   double zoom_begin(track.fractal_spec_.zoom_begin_);
   double zoom_end(track.fractal_spec_.zoom_end_);
   // temporal_palette_pos:
   // - (2, 1): Single fractal.
   // - (1, 0): Transition (two fractals on screen at the same time).
-  double temporal_palette_pos(log(zoom_level / zoom_end) / log(zoom_end / zoom_begin) + 2.0);
-  // temporal_palette_pos must be clamped because some inaccuracy in calculations
+  double temporal_palette_pos(
+      log(zoom_level / zoom_end) / log(zoom_end / zoom_begin) + 2.0);
+  // temporal_palette_pos must be clamped because some inaccuracy in
+  // calculations
   // causes it to go beyond its boundaries during a couple of frames.
   return Clamp(temporal_palette_pos - 1.0, 0.0, 1.0);
 }
 
-void CreatePalette(StaticTrack& track) {
+void CreatePalette(StaticTrack& track)
+{
   CUDATimerRun run_palette_timer(*g_cuda_timers, kPalettes);
 
   double zoom_begin(track.fractal_spec_.zoom_begin_);
-  //double zoom_end(track.fractal_spec_.zoom_end_);
+  // double zoom_end(track.fractal_spec_.zoom_end_);
   // Get the zoom value that would be needed for generating the box that is just
   // about to go off the screen.
   double zoom_full(ZoomFull(g_zoom_level));
@@ -703,11 +721,13 @@ void CreatePalette(StaticTrack& track) {
     //
     // When the current fractal covers the entire screen, there is no fading
     // between fractals to be done. One palette is generated and used directly.
-    double temporal_palette_pos_clamp(GetTemporalPalettePosByZoomLevel(
-      g_track_index, ZoomFull(g_zoom_level)));
-    RunGeneratePaletteKernel(d_palette_buf[0], g_track_index,
-      temporal_palette_pos_clamp, g_tracks->shared_bailout_);
-    //printf("single: temporal_palette_pos_clamp(%f)\n", temporal_palette_pos_clamp);
+    double temporal_palette_pos_clamp(
+        GetTemporalPalettePosByZoomLevel(g_track_index, ZoomFull(g_zoom_level)));
+    RunGeneratePaletteKernel(
+        d_palette_buf[0], g_track_index, temporal_palette_pos_clamp,
+        g_tracks->shared_bailout_);
+    // printf("single: temporal_palette_pos_clamp(%f)\n",
+    // temporal_palette_pos_clamp);
   }
   else {
     // The track from which fractal boxes are currently being calculated covers
@@ -718,26 +738,32 @@ void CreatePalette(StaticTrack& track) {
     // screen, the blend is complete.
 
     // Index of previous track.
-    u32 track_index_prev((!g_track_index ? g_tracks->count_ : g_track_index) - 1);
+    u32 track_index_prev(
+        (!g_track_index ? g_tracks->count_ : g_track_index) - 1);
     // Generate the last palette that was used for the previous track.
     StaticTrack& track_prev(g_tracks->tracks_[track_index_prev]);
-    double p1(GetTemporalPalettePosByZoomLevel(track_index_prev,
-      ZoomClamp(track_prev.fractal_spec_.zoom_end_)));
-    RunGeneratePaletteKernel(d_palette_buf[0], track_index_prev, p1,
-      g_tracks->shared_bailout_);
+    double p1(
+        GetTemporalPalettePosByZoomLevel(
+            track_index_prev, ZoomClamp(track_prev.fractal_spec_.zoom_end_)));
+    RunGeneratePaletteKernel(
+        d_palette_buf[0], track_index_prev, p1, g_tracks->shared_bailout_);
     // Generate the first palette that will be used for the current track.
-    double p2(GetTemporalPalettePosByZoomLevel(g_track_index,
-      ZoomClamp(track.fractal_spec_.zoom_begin_)));
-    RunGeneratePaletteKernel(d_palette_buf[1], g_track_index, p2,
-      g_tracks->shared_bailout_);
+    double p2(
+        GetTemporalPalettePosByZoomLevel(
+            g_track_index, ZoomClamp(track.fractal_spec_.zoom_begin_)));
+    RunGeneratePaletteKernel(
+        d_palette_buf[1], g_track_index, p2, g_tracks->shared_bailout_);
     // Number of frames rendered in current track.
-    double zoom_frames(log(ZoomClamp(zoom_begin) / g_zoom_level) / g_log_zoom_step);
+    double zoom_frames(
+        log(ZoomClamp(zoom_begin) / g_zoom_level) / g_log_zoom_step);
     // Find out how far into the transition rendering has progressed.
-    double transition_pos(zoom_frames / static_cast<double>(g_num_fractal_boxes));
+    double transition_pos(
+        zoom_frames / static_cast<double>(g_num_fractal_boxes));
     // Use the value to blend the palettes for current and previous track.
-    RunLerpPaletteBufsKernel(d_palette_buf[0], d_palette_buf[1],
-      transition_pos, g_tracks->shared_bailout_);
-    //printf("trans:  p2(%f)\n", p2);
+    RunLerpPaletteBufsKernel(
+        d_palette_buf[0], d_palette_buf[1], transition_pos,
+        g_tracks->shared_bailout_);
+    // printf("trans:  p2(%f)\n", p2);
   }
 }
 
@@ -747,10 +773,10 @@ void CreatePalette(StaticTrack& track) {
 // ---------------------------------------------------------------------------
 
 __global__ void TransformKernel(
-  float fractal_buf_w_norm, float fractal_buf_h_norm,
-  float g_fractal_box_insert_pos, float g_num_fractal_boxes,
-  float* transform, u32 w, u32 h, size_t pitch,
-  float g_log_zoom_step, float g_log_intra_zoom_end)
+    float fractal_buf_w_norm, float fractal_buf_h_norm,
+    float g_fractal_box_insert_pos, float g_num_fractal_boxes, float* transform,
+    u32 w, u32 h, size_t pitch, float g_log_zoom_step,
+    float g_log_intra_zoom_end)
 {
   u32 x(blockIdx.x * blockDim.x + threadIdx.x);
   u32 y(blockIdx.y); // threads_per_block_y == 1
@@ -830,7 +856,7 @@ __global__ void TransformKernel(
   // + off: Add the start of the fractal data that should be used for this
   // section.
   float x_sample((0.5f + ((xn - 0.5f) / (yn * 2.0f))) * span + off);
-  //if (x_sample == 0.25) {
+  // if (x_sample == 0.25) {
   //  transform[x + y * pitch] = 2000.0f;
   //}
   // y_pos can be cached, which reduces the need to calculate the log() to only
@@ -870,8 +896,9 @@ __global__ void TransformKernel(
   // position is divided by the resolution of the buffer to get a position in
   // the [0, 1] range. The position is then multiplied by 2 because the buffer
   // contains two copies of each box, so it is twice as wide as its resolution.
-  float y_pos((rintf(i) * 2.0f + 1.0f + g_fractal_box_insert_pos * 2.0f) /
-    (g_num_fractal_boxes * 2.0f));
+  float y_pos(
+      (rintf(i) * 2.0f + 1.0f + g_fractal_box_insert_pos * 2.0f)
+      / (g_num_fractal_boxes * 2.0f));
 
   transform[x + y * pitch] = tex2D(d_fractal_boxes_tex, x_sample, y_pos);
 }
@@ -883,20 +910,29 @@ void RunTransformKernel()
   u32 threads_per_block_x(g_compute_capability_major < 2 ? 128 : 192);
   u32 threads_per_block_y(1);
   dim3 block_dim(threads_per_block_x, threads_per_block_y);
-  dim3 grid_dim(DivUp(g_cfg.screen_w_ * g_cfg.transform_ss_x_,
-    threads_per_block_x), DivUp(g_cfg.screen_h_ * g_cfg.transform_ss_y_, threads_per_block_y));
+  dim3 grid_dim(
+      DivUp(g_cfg.screen_w_ * g_cfg.transform_ss_x_, threads_per_block_x),
+      DivUp(g_cfg.screen_h_ * g_cfg.transform_ss_y_, threads_per_block_y));
 
-  float fractal_buf_w_norm(static_cast<float>(g_fractal_box_w) /
-    (static_cast<float>(g_fractal_box_w) + static_cast<float>(fractal_box_h)) / 2.0f);
-  float fractal_buf_h_norm(static_cast<float>(fractal_box_h) / (static_cast<float>(g_fractal_box_w) +
-    static_cast<float>(fractal_box_h)) / 2.0f);
+  float fractal_buf_w_norm(
+      static_cast<float>(g_fractal_box_w)
+      / (static_cast<float>(g_fractal_box_w)
+         + static_cast<float>(fractal_box_h))
+      / 2.0f);
+  float fractal_buf_h_norm(
+      static_cast<float>(fractal_box_h) / (static_cast<float>(g_fractal_box_w)
+                                           + static_cast<float>(fractal_box_h))
+      / 2.0f);
 
   TransformKernel<<<grid_dim, block_dim, 0>>>(
-    fractal_buf_w_norm, fractal_buf_h_norm, static_cast<float>(g_fractal_box_insert_pos) - 1,
-    static_cast<float>(g_num_fractal_boxes), d_transform_buf_unreduced, g_cfg.screen_w_ *
-    g_cfg.transform_ss_x_, g_cfg.screen_h_ * g_cfg.transform_ss_y_,
-    transform_buf_pitch_unreduced / sizeof(float),
-    static_cast<float>(g_log_zoom_step), static_cast<float>(g_log_intra_zoom_end));
+      fractal_buf_w_norm, fractal_buf_h_norm,
+      static_cast<float>(g_fractal_box_insert_pos) - 1,
+      static_cast<float>(g_num_fractal_boxes), d_transform_buf_unreduced,
+      g_cfg.screen_w_ * g_cfg.transform_ss_x_,
+      g_cfg.screen_h_ * g_cfg.transform_ss_y_,
+      transform_buf_pitch_unreduced / sizeof(float),
+      static_cast<float>(g_log_zoom_step),
+      static_cast<float>(g_log_intra_zoom_end));
 
   cutilCheckMsg("TransformKernel failed");
 }
@@ -925,11 +961,12 @@ void RunUnreducedCheckerboardKernel()
   u32 threads_per_block_x(g_compute_capability_major < 2 ? 128 : 192);
   u32 threads_per_block_y(1);
   dim3 block_dim(threads_per_block_x, threads_per_block_y);
-  dim3 grid_dim(DivUp(g_cfg.screen_w_ * g_cfg.transform_ss_x_, threads_per_block_x),
-                DivUp(g_cfg.screen_h_ * g_cfg.transform_ss_y_, threads_per_block_y));
+  dim3 grid_dim(
+      DivUp(g_cfg.screen_w_ * g_cfg.transform_ss_x_, threads_per_block_x),
+      DivUp(g_cfg.screen_h_ * g_cfg.transform_ss_y_, threads_per_block_y));
 
   UnreducedCheckerboardKernel<<<grid_dim, block_dim, 0>>>(
-    d_transform_buf_unreduced, transform_buf_pitch_unreduced / sizeof(float));
+      d_transform_buf_unreduced, transform_buf_pitch_unreduced / sizeof(float));
 
   cutilCheckMsg("UnreducedCheckerboardKernel");
 }
@@ -943,7 +980,7 @@ void RunUnreducedCheckerboardKernel()
 // ---------------------------------------------------------------------------
 
 __global__ void DebugCopyBoxBufToUnreducedBuf(
-  float* transform, u32 w, u32 h, size_t pitch)
+    float* transform, u32 w, u32 h, size_t pitch)
 {
   u32 x(blockIdx.x * blockDim.x + threadIdx.x);
   u32 y(blockIdx.y); // threads_per_block_y == 1
@@ -960,14 +997,13 @@ void RunDebugCopyBoxBufToUnreducedBuf()
   const u32 threads_per_block_y(1);
   dim3 block_dim(threads_per_block_x, threads_per_block_y);
   dim3 grid_dim(
-    DivUp(g_cfg.screen_w_ * g_cfg.transform_ss_x_, threads_per_block_x),
-    DivUp(g_cfg.screen_h_ * g_cfg.transform_ss_y_,
-    threads_per_block_y));
+      DivUp(g_cfg.screen_w_ * g_cfg.transform_ss_x_, threads_per_block_x),
+      DivUp(g_cfg.screen_h_ * g_cfg.transform_ss_y_, threads_per_block_y));
 
   DebugCopyBoxBufToUnreducedBuf<<<grid_dim, block_dim, 0>>>(
-    d_transform_buf_unreduced, g_cfg.screen_w_ * g_cfg.transform_ss_x_,
-    g_cfg.screen_h_ * g_cfg.transform_ss_y_,
-    transform_buf_pitch_unreduced / sizeof(float));
+      d_transform_buf_unreduced, g_cfg.screen_w_ * g_cfg.transform_ss_x_,
+      g_cfg.screen_h_ * g_cfg.transform_ss_y_,
+      transform_buf_pitch_unreduced / sizeof(float));
 
   cutilCheckMsg("DebugCopyBoxBufToUnreducedBuf failed");
 }
@@ -979,10 +1015,8 @@ void RunDebugCopyBoxBufToUnreducedBuf()
 // ---------------------------------------------------------------------------
 
 __global__ void DebugCopyUnreducedToDisplayKernel(
-  float* transform, size_t transform_pitch,
-  uchar4* supersample, size_t supersample_pitch,
-  u32 w,
-  float norm_fact)
+    float* transform, size_t transform_pitch, uchar4* supersample,
+    size_t supersample_pitch, u32 w, float norm_fact)
 {
   u32 x(blockIdx.x * blockDim.x + threadIdx.x);
   u32 y(blockIdx.y); // threads_per_block_y == 1
@@ -998,25 +1032,28 @@ void RunDebugCopyUnreducedToDisplayKernel()
   u32 threads_per_block_x(g_compute_capability_major < 2 ? 128 : 192);
   u32 threads_per_block_y(1);
   dim3 block_dim(threads_per_block_x, threads_per_block_y);
-  dim3 grid_dim(DivUp(g_cfg.screen_w_, threads_per_block_x),
-                DivUp(g_cfg.screen_h_, threads_per_block_y));
+  dim3 grid_dim(
+      DivUp(g_cfg.screen_w_, threads_per_block_x),
+      DivUp(g_cfg.screen_h_, threads_per_block_y));
 
-  float norm_fact(1.0f / ((static_cast<float>(g_cfg.transform_ss_x_) *
-    static_cast<float>(g_cfg.transform_ss_y_)) * 256.0f));
+  float norm_fact(
+      1.0f / ((static_cast<float>(g_cfg.transform_ss_x_)
+               * static_cast<float>(g_cfg.transform_ss_y_))
+              * 256.0f));
 
   DebugCopyUnreducedToDisplayKernel<<<grid_dim, block_dim, 0>>>(
-    d_transform_buf_unreduced, transform_buf_pitch_unreduced / sizeof(float),
-    d_transform_buf_reduced, transform_buf_pitch_reduced / sizeof(uchar4),
-    g_cfg.screen_w_,
-    norm_fact);
+      d_transform_buf_unreduced, transform_buf_pitch_unreduced / sizeof(float),
+      d_transform_buf_reduced, transform_buf_pitch_reduced / sizeof(uchar4),
+      g_cfg.screen_w_, norm_fact);
 
   cutilCheckMsg("DebugCopyUnreducedToDisplayKernel failed");
 
   // Copy the finished, reduced frame to the CUDA Array used for OpenGL interop.
-  cutilSafeCall(cudaMemcpy2DToArray(d_transform_cuda_array, 0, 0, 
-    d_transform_buf_reduced, transform_buf_pitch_reduced,
-    g_cfg.screen_w_ * sizeof(uchar4), g_cfg.screen_h_,
-    cudaMemcpyDeviceToDevice));
+  cutilSafeCall(
+      cudaMemcpy2DToArray(
+          d_transform_cuda_array, 0, 0, d_transform_buf_reduced,
+          transform_buf_pitch_reduced, g_cfg.screen_w_ * sizeof(uchar4),
+          g_cfg.screen_h_, cudaMemcpyDeviceToDevice));
 }
 
 // ---------------------------------------------------------------------------
@@ -1031,12 +1068,9 @@ void RunDebugCopyUnreducedToDisplayKernel()
 // correctly generate the colorized image, colors must first be assigned to the
 // values and the resulting pixels must then be reduced.
 __global__ void ReduceAndColorizeKernel(
-  float* transform, size_t transform_pitch,
-  uchar4* supersample, size_t supersample_pitch,
-  u32 w, u32 h,
-  u32 transform_ss_x, u32 transform_ss_y,
-  float norm_fact,
-  uchar4* d_palette_buf)
+    float* transform, size_t transform_pitch, uchar4* supersample,
+    size_t supersample_pitch, u32 w, u32 h, u32 transform_ss_x,
+    u32 transform_ss_y, float norm_fact, uchar4* d_palette_buf)
 {
   u32 x(blockIdx.x * blockDim.x + threadIdx.x);
   u32 y(blockIdx.y); // threads_per_block_y == 1
@@ -1050,7 +1084,8 @@ __global__ void ReduceAndColorizeKernel(
   for (u32 j(0); j < transform_ss_y; ++j) {
     for (u32 i(0); i < transform_ss_x; ++i) {
       // Use palette to color the pixel.
-      uchar4 color(tex2D(d_palette_tex, static_cast<u32>(transform[off + i]), 0));
+      uchar4 color(
+          tex2D(d_palette_tex, static_cast<u32>(transform[off + i]), 0));
       r += static_cast<float>(color.x);
       g += static_cast<float>(color.y);
       b += static_cast<float>(color.z);
@@ -1058,41 +1093,40 @@ __global__ void ReduceAndColorizeKernel(
     off += transform_pitch;
   }
 
-  supersample[x + y * supersample_pitch] = make_uchar4(
-    r * norm_fact,
-    g * norm_fact,
-    b * norm_fact,
-    255);
+  supersample[x + y * supersample_pitch] =
+      make_uchar4(r * norm_fact, g * norm_fact, b * norm_fact, 255);
 }
 
 void RunReduceAndColorizeKernel()
 {
-  CUDATimerRun run_reduce_and_colorize_timer(*g_cuda_timers, kTransformReduceAndColorize);
+  CUDATimerRun run_reduce_and_colorize_timer(
+      *g_cuda_timers, kTransformReduceAndColorize);
 
   u32 threads_per_block_x(g_compute_capability_major < 2 ? 128 : 192);
   u32 threads_per_block_y(1);
   dim3 block_dim(threads_per_block_x, threads_per_block_y);
-  dim3 grid_dim(DivUp(g_cfg.screen_w_, threads_per_block_x),
-    DivUp(g_cfg.screen_h_, threads_per_block_y));
+  dim3 grid_dim(
+      DivUp(g_cfg.screen_w_, threads_per_block_x),
+      DivUp(g_cfg.screen_h_, threads_per_block_y));
 
-  float norm_fact(1.0f / ((static_cast<float>(g_cfg.transform_ss_x_) *
-    static_cast<float>(g_cfg.transform_ss_y_))));
+  float norm_fact(
+      1.0f / ((static_cast<float>(g_cfg.transform_ss_x_)
+               * static_cast<float>(g_cfg.transform_ss_y_))));
 
   ReduceAndColorizeKernel<<<grid_dim, block_dim, 0>>>(
-    d_transform_buf_unreduced, transform_buf_pitch_unreduced / sizeof(float),
-    d_transform_buf_reduced, transform_buf_pitch_reduced / sizeof(uchar4),
-    g_cfg.screen_w_, g_cfg.screen_h_,
-    g_cfg.transform_ss_x_, g_cfg.transform_ss_y_,
-    norm_fact,
-    d_palette_buf[0]);
+      d_transform_buf_unreduced, transform_buf_pitch_unreduced / sizeof(float),
+      d_transform_buf_reduced, transform_buf_pitch_reduced / sizeof(uchar4),
+      g_cfg.screen_w_, g_cfg.screen_h_, g_cfg.transform_ss_x_,
+      g_cfg.transform_ss_y_, norm_fact, d_palette_buf[0]);
 
   cutilCheckMsg("ReduceAndColorizeKernel failed");
 
   // Copy the finished, reduced frame to the CUDA Array used for OpenGL interop.
-  cutilSafeCall(cudaMemcpy2DToArray(d_transform_cuda_array, 0, 0, 
-    d_transform_buf_reduced, transform_buf_pitch_reduced,
-    g_cfg.screen_w_ * sizeof(uchar4), g_cfg.screen_h_,
-    cudaMemcpyDeviceToDevice));
+  cutilSafeCall(
+      cudaMemcpy2DToArray(
+          d_transform_cuda_array, 0, 0, d_transform_buf_reduced,
+          transform_buf_pitch_reduced, g_cfg.screen_w_ * sizeof(uchar4),
+          g_cfg.screen_h_, cudaMemcpyDeviceToDevice));
 }
 
 // ----------------------------------------------------------------------------
@@ -1104,9 +1138,10 @@ void FractalCalc(bool mouse_button_left, bool mouse_button_right)
   StaticTrack* track(&g_tracks->tracks_[g_track_index]);
 
   // Determine track and zoom level to be rendered.
-  if ((g_cfg.single_precision_ && ZoomFull(g_zoom_level) < MIN_ZOOM_SINGLE_PREC) ||
-      (!g_cfg.single_precision_ && ZoomFull(g_zoom_level) < MIN_ZOOM_DOUBLE_PREC) ||
-      (ZoomFull(g_zoom_level) < track->fractal_spec_.zoom_end_)) {
+  if ((g_cfg.single_precision_ && ZoomFull(g_zoom_level) < MIN_ZOOM_SINGLE_PREC)
+      || (!g_cfg.single_precision_
+          && ZoomFull(g_zoom_level) < MIN_ZOOM_DOUBLE_PREC)
+      || (ZoomFull(g_zoom_level) < track->fractal_spec_.zoom_end_)) {
     if (++g_track_index == g_tracks->count_) {
       g_track_index = 0;
     }
@@ -1144,7 +1179,8 @@ void FractalCalc(bool mouse_button_left, bool mouse_button_right)
   if (!mouse_button_right) {
     // Generate palette.
     if (g_cfg.grayscale_) {
-      RunDebugGenerateGrayscalePalette(d_palette_buf[0], g_tracks->shared_bailout_);
+      RunDebugGenerateGrayscalePalette(
+          d_palette_buf[0], g_tracks->shared_bailout_);
     }
     else {
       CreatePalette(*track);
@@ -1153,7 +1189,8 @@ void FractalCalc(bool mouse_button_left, bool mouse_button_right)
     RunTransformKernel();
   }
   else {
-    RunDebugGenerateGrayscalePalette(d_palette_buf[0], g_tracks->shared_bailout_);
+    RunDebugGenerateGrayscalePalette(
+        d_palette_buf[0], g_tracks->shared_bailout_);
     RunDebugCopyBoxBufToUnreducedBuf();
   }
 
