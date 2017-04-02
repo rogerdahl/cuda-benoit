@@ -13,6 +13,7 @@
 #include "platform.h"
 #include "track.h"
 
+
 using namespace std;
 
 // Config.
@@ -87,9 +88,9 @@ int main(int argc, char** argv)
   g_cuda_timers = new CUDATimers(kCount_, g_cfg.timers_);
 
   // Initialize the .cu based graphics resources.
-  cutilSafeCall(cudaGraphicsMapResources(1, g_graphics_resources));
+  checkCudaErrors(cudaGraphicsMapResources(1, g_graphics_resources));
   Initialize(1, g_graphics_resources, static_tracks);
-  cutilSafeCall(cudaGraphicsUnmapResources(1, g_graphics_resources));
+  checkCudaErrors(cudaGraphicsUnmapResources(1, g_graphics_resources));
 
   // Use the ANSI C/C++ atexit() call to specify the address of a function to
   // execute when the program exits.
@@ -209,7 +210,7 @@ void CreateAndRegisterTex(
   // GL_RGBA8UI). It does not currently support normalized integer formats (e.g.
   // GL_RGBA8). Please note that since GL_RGBA8UI is an OpenGL 3.0 texture
   // format, it can only be written by shaders, not the fixed function pipeline.
-  cutilSafeCall(
+  checkCudaErrors(
       cudaGraphicsGLRegisterImage(
           &resource, tex, GL_TEXTURE_2D, cudaGraphicsMapFlagsWriteDiscard));
 }
@@ -232,13 +233,13 @@ void Update()
   //
   // Some driver bug causes this call to be extremely slow on a 2 GPU system
   // even when both CUDA and OpenGL runs on the same GPU.
-  cutilSafeCall(cudaGraphicsMapResources(1, g_graphics_resources));
+  checkCudaErrors(cudaGraphicsMapResources(1, g_graphics_resources));
   // Calculate a new frame and update the texture with it.
   bool mouse_button_left((mouse_buttons & 1) != 0);
   bool mouse_button_right((mouse_buttons & 4) != 0);
   FractalCalc(mouse_button_left, mouse_button_right);
   // Unmap the texture so that it can be used for rendering in OpenGL.
-  cutilSafeCall(cudaGraphicsUnmapResources(1, g_graphics_resources));
+  checkCudaErrors(cudaGraphicsUnmapResources(1, g_graphics_resources));
 }
 
 // Draw fractal.

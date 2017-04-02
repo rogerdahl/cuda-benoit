@@ -1,5 +1,7 @@
 #pragma once
 
+#include "int_types.h"
+
 struct Configuration
 {
   s32 device_;

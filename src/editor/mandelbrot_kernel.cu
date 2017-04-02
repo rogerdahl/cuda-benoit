@@ -6,7 +6,7 @@
 #include <iostream>
 using namespace std;
 #include <cuda_runtime_api.h>
-#include <cutil.h>
+#include <ZZcutil.h>
 
 cudaStream_t stream;
 unsigned int timer_gpu;

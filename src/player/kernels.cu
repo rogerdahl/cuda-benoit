@@ -1,8 +1,5 @@
-#include "cutil.h"
-// nclude <cutil_math.h>
-#include "cutil_inline_runtime.h"
 
-#include "../../lib/int_types.h"
+#include "int_types.h"
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -10,6 +7,7 @@
 #include "config.h"
 #include "kernels.h"
 #include "tracks.h"
+#include "cuda_util.h"
 
 // Constants.
 
@@ -136,7 +134,7 @@ void Initialize(
 
   // Map textures that are shared with OpenGL.
   for (u32 i(0); i < num_resources; ++i) {
-    cutilSafeCall(
+    checkCudaErrors(
         cudaGraphicsSubResourceGetMappedArray(
             &d_transform_cuda_array, resources[i], 0, 0));
   }
@@ -182,48 +180,61 @@ void Initialize(
   // sampling within a given fractal box without getting interpolation between
   // different fractal boxes.
   cudaChannelFormatDesc channelDesc(
-      cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat));
-  cutilSafeCall(
+      cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat)
+  );
+  checkCudaErrors(
       cudaMallocArray(
           &d_fractal_boxes_cuda_array, &channelDesc, fractal_box_total,
           g_num_fractal_boxes * 2));
 
+  // Clear the Fractal Boxes CUDA Array (couldn't find a better way!)
+  void *p;
+  size_t nArrayBytes =
+    fractal_box_total * g_num_fractal_boxes * 2 * sizeof(float);
+  checkCudaErrors(cudaMalloc(&p, nArrayBytes));
+  checkCudaErrors(cudaMemset(p, 0, nArrayBytes));
+  checkCudaErrors(cudaMemcpyToArray(
+    d_fractal_boxes_cuda_array, 0, 0, p, nArrayBytes,
+    cudaMemcpyDeviceToDevice
+  ));
+  checkCudaErrors(cudaFree(p));
+  
   // Buffer for a single box of fractal data, unreduced supersample.
-  cutilSafeCall(
+  checkCudaErrors(
       cudaMalloc(
           &d_fractal_box_unreduced_buf,
           fractal_box_total * g_cfg.fractal_box_ss_ * sizeof(float)));
 
   // Buffer for a single box of fractal data, reduced supersample.
-  cutilSafeCall(
+  checkCudaErrors(
       cudaMalloc(&d_fractal_box_reduced_buf, fractal_box_total * sizeof(float)));
 
   // Copy tracks to device buffer.
-  cutilSafeCall(
+  checkCudaErrors(
       cudaMemcpyToSymbol(d_tracks, (void*)g_tracks, sizeof(StaticTracks)));
 
   // Buffers for palettes. These are required because kernels can't write
   // directly to CUDA Arrays on caps < 2.0.
-  cutilSafeCall(
+  checkCudaErrors(
       cudaMalloc(&d_palette_buf[0], tracks->shared_bailout_ * sizeof(uchar4)));
-  cutilSafeCall(
+  checkCudaErrors(
       cudaMalloc(&d_palette_buf[1], tracks->shared_bailout_ * sizeof(uchar4)));
 
   // CUDA Arrays for palettes.
   cudaChannelFormatDesc channelDesc2(
       cudaCreateChannelDesc(8, 8, 8, 8, cudaChannelFormatKindUnsigned));
-  cutilSafeCall(
+  checkCudaErrors(
       cudaMallocArray(
           &d_palette_cuda_arrays[0], &channelDesc2,
           tracks->shared_bailout_ * sizeof(uchar4), 1));
-  cutilSafeCall(
+  checkCudaErrors(
       cudaMallocArray(
           &d_palette_cuda_arrays[1], &channelDesc2,
           tracks->shared_bailout_ * sizeof(uchar4), 1));
 
   // Create a 2D array to which the transform kernel will write the transformed
   // image data.
-  cutilSafeCall(
+  checkCudaErrors(
       cudaMallocPitch(
           &d_transform_buf_unreduced, &transform_buf_pitch_unreduced,
           g_cfg.screen_w_ * sizeof(float) * g_cfg.transform_ss_x_,
@@ -231,7 +242,7 @@ void Initialize(
 
   // Create a 2D array to which the reduce kernel will write the reduced
   // image data.
-  cutilSafeCall(
+  checkCudaErrors(
       cudaMallocPitch(
           &d_transform_buf_reduced, &transform_buf_pitch_reduced,
           g_cfg.screen_w_ * sizeof(uchar4), g_cfg.screen_h_));
@@ -284,14 +295,14 @@ void Initialize(
 void Shutdown()
 {
   cudaFreeArray(d_fractal_boxes_cuda_array);
-  cutilSafeCall(cudaFree(d_fractal_box_unreduced_buf));
-  cutilSafeCall(cudaFree(d_fractal_box_reduced_buf));
-  cutilSafeCall(cudaFree(d_palette_buf[0]));
-  cutilSafeCall(cudaFree(d_palette_buf[1]));
+  checkCudaErrors(cudaFree(d_fractal_box_unreduced_buf));
+  checkCudaErrors(cudaFree(d_fractal_box_reduced_buf));
+  checkCudaErrors(cudaFree(d_palette_buf[0]));
+  checkCudaErrors(cudaFree(d_palette_buf[1]));
   cudaFreeArray(d_palette_cuda_arrays[0]);
   cudaFreeArray(d_palette_cuda_arrays[1]);
-  cutilSafeCall(cudaFree(d_transform_buf_unreduced));
-  cutilSafeCall(cudaFree(d_transform_buf_reduced));
+  checkCudaErrors(cudaFree(d_transform_buf_unreduced));
+  checkCudaErrors(cudaFree(d_transform_buf_reduced));
 }
 
 // ----------------------------------------------------------------------------
@@ -472,7 +483,7 @@ void RunMandelbrotKernel(double cr1, double ci1, double cr2, double ci2)
         g_tracks->shared_bailout_);
   }
 
-  cutilCheckMsg("MandelbrotKernel failed");
+  getLastCudaError("MandelbrotKernel failed");
 }
 
 // ----------------------------------------------------------------------------
@@ -510,7 +521,7 @@ void RunFractalReduceKernel()
       d_fractal_box_reduced_buf, d_fractal_box_unreduced_buf, fractal_box_total,
       g_cfg.fractal_box_ss_);
 
-  cutilCheckMsg("FractalReduceKernel failed");
+  getLastCudaError("FractalReduceKernel failed");
 
   // Insert the new box into the log scale map. Two copies are created side by
   // side so that linear sampling can be used between them to get interpolation
@@ -521,11 +532,11 @@ void RunFractalReduceKernel()
   // sampling location was shifted from between the two boxes to in the center
   // of the even box.
   int s(fractal_box_total * sizeof(float));
-  cutilSafeCall(
+  checkCudaErrors(
       cudaMemcpyToArray(
           d_fractal_boxes_cuda_array, 0, g_fractal_box_insert_pos * 2,
           d_fractal_box_reduced_buf, s, cudaMemcpyDeviceToDevice));
-  cutilSafeCall(
+  checkCudaErrors(
       cudaMemcpyToArray(
           d_fractal_boxes_cuda_array, 0, g_fractal_box_insert_pos * 2 + 1,
           d_fractal_box_reduced_buf, s, cudaMemcpyDeviceToDevice));
@@ -607,9 +618,9 @@ void RunGeneratePaletteKernel(
       d_palette_buf, g_track_index, static_cast<float>(temporal_palette_pos),
       bailout);
 
-  cutilCheckMsg("GeneratePaletteKernel failed");
+  getLastCudaError("GeneratePaletteKernel failed");
 
-  cutilSafeCall(
+  checkCudaErrors(
       cudaMemcpyToArray(
           d_palette_cuda_arrays[0], 0, 0, d_palette_buf,
           bailout * sizeof(uchar4), cudaMemcpyDeviceToDevice));
@@ -647,9 +658,9 @@ void RunDebugGenerateGrayscalePalette(uchar4* d_palette_buf, u32 bailout)
   DebugGenerateGrayscalePaletteKernel<<<grid_dim, block_dim, 0>>>(
       d_palette_buf, bailout);
 
-  cutilCheckMsg("DebugGenerateGrayscalePaletteKernel failed");
+  getLastCudaError("DebugGenerateGrayscalePaletteKernel failed");
 
-  cutilSafeCall(
+  checkCudaErrors(
       cudaMemcpyToArray(
           d_palette_cuda_arrays[0], 0, 0, d_palette_buf,
           bailout * sizeof(uchar4), cudaMemcpyDeviceToDevice));
@@ -681,9 +692,9 @@ void RunLerpPaletteBufsKernel(
   LerpPaletteBufsKernel<<<grid_dim, block_dim, 0>>>(
       d_palette_buf[0], d_palette_buf[1], static_cast<float>(pos), bailout);
 
-  cutilCheckMsg("LerpPaletteBufsKernel failed");
+  getLastCudaError("LerpPaletteBufsKernel failed");
 
-  cutilSafeCall(
+  checkCudaErrors(
       cudaMemcpyToArray(
           d_palette_cuda_arrays[0], 0, 0, palette_buf1,
           bailout * sizeof(uchar4), cudaMemcpyDeviceToDevice));
@@ -934,7 +945,7 @@ void RunTransformKernel()
       static_cast<float>(g_log_zoom_step),
       static_cast<float>(g_log_intra_zoom_end));
 
-  cutilCheckMsg("TransformKernel failed");
+  getLastCudaError("TransformKernel failed");
 }
 
 // ---------------------------------------------------------------------------
@@ -968,7 +979,7 @@ void RunUnreducedCheckerboardKernel()
   UnreducedCheckerboardKernel<<<grid_dim, block_dim, 0>>>(
       d_transform_buf_unreduced, transform_buf_pitch_unreduced / sizeof(float));
 
-  cutilCheckMsg("UnreducedCheckerboardKernel");
+  getLastCudaError("UnreducedCheckerboardKernel");
 }
 
 // ---------------------------------------------------------------------------
@@ -1005,7 +1016,7 @@ void RunDebugCopyBoxBufToUnreducedBuf()
       g_cfg.screen_h_ * g_cfg.transform_ss_y_,
       transform_buf_pitch_unreduced / sizeof(float));
 
-  cutilCheckMsg("DebugCopyBoxBufToUnreducedBuf failed");
+  getLastCudaError("DebugCopyBoxBufToUnreducedBuf failed");
 }
 
 // ---------------------------------------------------------------------------
@@ -1046,10 +1057,10 @@ void RunDebugCopyUnreducedToDisplayKernel()
       d_transform_buf_reduced, transform_buf_pitch_reduced / sizeof(uchar4),
       g_cfg.screen_w_, norm_fact);
 
-  cutilCheckMsg("DebugCopyUnreducedToDisplayKernel failed");
+  getLastCudaError("DebugCopyUnreducedToDisplayKernel failed");
 
   // Copy the finished, reduced frame to the CUDA Array used for OpenGL interop.
-  cutilSafeCall(
+  checkCudaErrors(
       cudaMemcpy2DToArray(
           d_transform_cuda_array, 0, 0, d_transform_buf_reduced,
           transform_buf_pitch_reduced, g_cfg.screen_w_ * sizeof(uchar4),
@@ -1119,10 +1130,10 @@ void RunReduceAndColorizeKernel()
       g_cfg.screen_w_, g_cfg.screen_h_, g_cfg.transform_ss_x_,
       g_cfg.transform_ss_y_, norm_fact, d_palette_buf[0]);
 
-  cutilCheckMsg("ReduceAndColorizeKernel failed");
+  getLastCudaError("ReduceAndColorizeKernel failed");
 
   // Copy the finished, reduced frame to the CUDA Array used for OpenGL interop.
-  cutilSafeCall(
+  checkCudaErrors(
       cudaMemcpy2DToArray(
           d_transform_cuda_array, 0, 0, d_transform_buf_reduced,
           transform_buf_pitch_reduced, g_cfg.screen_w_ * sizeof(uchar4),

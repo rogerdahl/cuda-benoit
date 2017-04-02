@@ -1,6 +1,8 @@
 #pragma once
 
-#include "../../lib/int_types.h"
+#include "int_types.h"
+#include "cuda_runtime.h"
+
 
 enum CUDATimerEnum
 {

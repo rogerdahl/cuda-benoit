@@ -1,5 +1,3 @@
-#pragma once
-
 #include "platform.h"
 #include "pch.h"
 

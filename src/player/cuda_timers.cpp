@@ -8,14 +8,14 @@
 CUDATimer::CUDATimer()
   : current_(0.0f), total_(0.0f), cycles_(0), min_(FLT_MAX), max_(0.0f)
 {
-  cutilSafeCall(cudaEventCreate(&start_));
-  cutilSafeCall(cudaEventCreate(&stop_));
+  checkCudaErrors(cudaEventCreate(&start_));
+  checkCudaErrors(cudaEventCreate(&stop_));
 }
 
 CUDATimer::~CUDATimer()
 {
-  cutilSafeCall(cudaEventDestroy(start_));
-  cutilSafeCall(cudaEventDestroy(stop_));
+  checkCudaErrors(cudaEventDestroy(start_));
+  checkCudaErrors(cudaEventDestroy(stop_));
 };
 
 //-------------------
@@ -43,9 +43,9 @@ void CUDATimers::Start(CUDATimerEnum timer_id)
     return;
   }
   CUDATimer& cuda_timer(cuda_timers_[timer_id]);
-  cutilSafeCall(cudaThreadSynchronize());
-  cutilSafeCall(cudaEventRecord(cuda_timer.start_, 0));
-  cutilSafeCall(cudaEventSynchronize(cuda_timer.start_));
+  checkCudaErrors(cudaThreadSynchronize());
+  checkCudaErrors(cudaEventRecord(cuda_timer.start_, 0));
+  checkCudaErrors(cudaEventSynchronize(cuda_timer.start_));
 }
 
 void CUDATimers::Stop(CUDATimerEnum timer_id)
@@ -54,11 +54,11 @@ void CUDATimers::Stop(CUDATimerEnum timer_id)
     return;
   }
   CUDATimer& cuda_timer(cuda_timers_[timer_id]);
-  cutilSafeCall(cudaThreadSynchronize());
-  cutilSafeCall(cudaEventRecord(cuda_timer.stop_, 0));
-  cutilSafeCall(cudaEventSynchronize(cuda_timer.stop_));
+  checkCudaErrors(cudaThreadSynchronize());
+  checkCudaErrors(cudaEventRecord(cuda_timer.stop_, 0));
+  checkCudaErrors(cudaEventSynchronize(cuda_timer.stop_));
   float current;
-  cutilSafeCall(
+  checkCudaErrors(
       cudaEventElapsedTime(&current, cuda_timer.start_, cuda_timer.stop_));
   current /= 1000.0;
   cuda_timer.current_ += current;

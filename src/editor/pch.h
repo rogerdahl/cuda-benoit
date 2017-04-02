@@ -58,9 +58,9 @@
 
 // CUDA
 #include <cuda_runtime.h>
-#include <cutil.h>
+#include <ZZcutil.h>
 //#include <cutil_math.h>
-#include <cutil_inline_runtime.h>
+#include <ZZcutil_inline_runtime.h>
 //#include <cuda_runtime.h>
 
 //#define _CRT_SECURE_NO_WARNINGS
