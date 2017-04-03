@@ -3,7 +3,7 @@
 #include <stdio.h>
 // Relative path needed because .cu compiler ignores Visual Studio additional
 // include directories.
-#include "../../lib/int_types.h"
+#include "int_types.h"
 
 #define CUDA_CHECK_CALL(call)                                                  \
   {                                                                            \

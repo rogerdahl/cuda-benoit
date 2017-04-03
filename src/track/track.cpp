@@ -61,14 +61,14 @@ TemporalPalette& Track::GetTemporalPalette()
   return temporal_palette_;
 }
 
-void Track::Load(const wpath& archive_path)
+void Track::Load(const path& archive_path)
 {
   boost::filesystem::ifstream ifs(archive_path, ios::binary);
   boost::archive::xml_iarchive ia(ifs);
   ia >> boost::serialization::make_nvp("track", *this);
 }
 
-void Track::Save(const wpath& archive_path)
+void Track::Save(const path& archive_path)
 {
   boost::filesystem::ofstream ofs(archive_path, ios::binary);
   boost::archive::xml_oarchive oa(ofs);

@@ -21,7 +21,7 @@ Lower end workstation or embedded graphics cards (such as the ones used in lapto
 
 The player reads fractal zoom specifications from .benoit track files created in the editor and renders them as colorful fractal zooms in realtime.
 
-<img align="right" width="50%" src="./doc/player.jpg">
+<img align="right" width="60%" src="./doc/player.jpg">
 
 The player comes with a configuration file that has been optimized for an NVIDIA GTX 570 graphics card. If the target machine has this or a better card, tracks should play smoothly with good quality.
 
@@ -53,7 +53,7 @@ The editor lets you create fractal zoom specifications, .benoit track files, to 
 
 A track contains a vanishing point to zoom towards, starting and ending zoom levels and key colors for creating palettes for frames in the zoom.
 
-<img align="right" width="50%" src="./doc/editor.jpg">
+<img align="right" width="60%" src="./doc/editor.jpg">
 
 I created this tool because I feel that when coloring a fractal, the palette, in addition to providing colors, is an important tool for emphasizing and suppressing details in the fractal. So instead of just assigning palettes to fractals programmatically, I wanted a tool that would enable exact adjustment of the colors for given details in the fractals.
 
@@ -119,7 +119,7 @@ The easiest way to create a track consists of these steps:
 
 ### What is a log scale map?
 
-<img align="right" width="50%" src="./doc/log_map.jpg">
+<img align="right" width="60%" src="./doc/log_map.jpg">
 
 This is a photo taken on a pier. Imagine that the pier was infinitely long. The point into which the walkway would seem to disappear in the distance is called the vanishing point.
 
@@ -285,7 +285,7 @@ The source code for the player is \~2000 lines of well documented C++ and CUDA C
 
 This figure shows kernel execution times in microseconds for two frames rendered in the player with 1920x1080 display resolution, 9xSSAA (supersampling), bailout 2000, 3 fractal boxes per frame and escape times calculated with double precision. As can be observed, the transform takes \~8000us, which is half of the available time when rendering at 60 FPS. Each of the fractal boxes take \~1400us, 4200us total. Leaving around 4400us for the other kernels, overhead and safety margin, to meet the 60 FPS deadline.
 
-<img align="right" width="50%" src="./doc/player_plot_small.png">
+<img align="right" width="60%" src="./doc/player_plot_small.png">
 
 The two main tasks performed by the player, Mandelbrot escape time calculations and log scale transforms are both tasks to which the graphics card is ideally suited. Both consist of large blocks of calculations that are completely independent of each other and which access memory consecutively. Also, there is no need for further processing of the data by the CPU so CUDA to OpenGL interop is used to display the rendered data without it leaving the graphics card.
 
@@ -298,23 +298,27 @@ Performance is good on the GTX 570. In the log scale transform kernel, instructi
 ### Building on Linux
 
 ```
-$ sudo apt-get install libglew-dev libboost-serialization-dev \
-libboost-thread-dev wx2.8-headers libwxgtk2.8-0 libwxgtk2.8-dev \
+$ sudo apt install libglew-dev libboost-dev wx3.0-headers libwxgtk3.0-dev
 
-$ sudo ln -sv /usr/include/wx-2.8/wx/ /usr/include/wx
+$ git clone <copy/paste the clone link from the green button on top of this page>
+$ cd cuda-benoit
+$ mkdir cmake-build-release
+$ cd cmake-build-release
+$ cmake -DCMAKE_BUILD_TYPE=Release ..
+$ make
 ```
 
 ### Known issues
 
 #### Moiré pattern
 
-<img align="right" width="50%" src="./doc/moire_small.png">
+<img align="right" width="60%" src="./doc/moire_small.png">
 
-The main factor that reduces rendering quality in the player is a Moiré pattern that is visible when rendering certain combinations of fractal data and palettes. The pattern is created in the log scale transform. Using supersampling in the transform (an option that is available in the player and enabled by default) helps but does not completely remove the Moiré pattern. The app uses linear interpolation when sampling from the fractal box buffer, where the base data for the log scale transform resides. I am puzzled as to why this does not remove the Moiré pattern. I don't yet know if the issue is inherent to the mathematics used in the transform or if it's caused by a bug or a programming error, such as a misunderstanding on my part on how the pixel data should be processed and/or rendered. Any insight that anyone can offer on this would be much appreciated.
+The main factor that reduces rendering quality in the player is a Moiré pattern that is visible when rendering certain combinations of fractal data and palettes. The pattern is created in the log scale transform and I *think* it's caused by an inaccurate (but very fast) implementation of `log` on the GPU.
 
-Even when the Moiré pattern is not visible, it can produce areas that radiate out from the center of image in which pixels seem to flicker.
+ Using supersampling in the transform (an option that is available in the player and enabled by default) helps but does not completely remove the Moiré pattern. The app uses linear interpolation when sampling from the fractal box buffer, where the base data for the log scale transform resides.
 
-By filling the fractal box buffer with sample data, alternating black and white pixels, the Moiré pattern is fully exposed, causing a display as follows. When rendering a regular track, the Moiré pattern appears "blended in" with the fractal image when it is visible.
+By filling the fractal box buffer with sample data, alternating black and white pixels, the Moiré pattern is fully exposed, causing a display as shown. When rendering a regular track, the Moiré pattern appears "blended in" with the fractal image when it is visible.
 
 As can be seen in the image, when the Moiré pattern is visible, it is most apparent in areas radiating out from the center in 90 and 45 degree angles.
 
@@ -361,13 +365,13 @@ The CPU implementations were all parallelized using OpenMP.
 
 An interesting observation that can be made from viewing the different implementations is the big difference in level of complexity between the CUDA and the SSE implementations. The SSE implementations had to be written in assembly (or by using assembly intrinsics). The fact that the number of iterations in the loop vary for each escape time calculation has to be handled manually by masking techniques. In addition, the loop must be bracketed by code that first packs the starting values into XMM registers and unpacks the results afterwards. In contrast, the CUDA implementation of the escape time calculation loop looks like the plain C++ implementation. In other words, not only does the CUDA implementation of the Mandelbrot escape time calculation run much faster (see Benchmark\_), it also saved a lot of developer time.
 
-#### Benchmark
-
-Here is a benchmark performed on my computer, an 8 core Xeon E5504 "Gainestown" 2.0GHz machine with a GTX 570 graphics card at 1.5GHz.
+#### Benchmarks
 
 Characteristic of the Mandelbrot escape time calculation: The calculation is always purely compute bound. The loop consists of 14 floating point operations, a branch and an integer subtraction and test for zero. In this test, the loop was run 10,000 times for approximately 24,000,000 values. There is almost no I/O. Input is 2 floating point values, output is one integer value.
 
 The editor was set up with 25xSSAA, bailout was set to 10,000 and the window was maximized. A zoom was then performed into the center of the Mandelbrot set, where all escape times hit the bailout value.
+
+##### 2x4 core NUMA Intel Xeon E5504 "Gainestown" @ 2.0GHz / GTX 570 @ 1.5GHz
 
     x86 double     13 gflops
     x86 float      14 gflops
@@ -375,6 +379,15 @@ The editor was set up with 25xSSAA, bailout was set to 10,000 and the window was
     SSE2 float     56 gflops
     CUDA double   137 gflops
     CUDA float    528 gflops
+
+##### 8 core AMD Ryzen 1700 @ 3.0GHz / GTX 1070 @ 1.8GHz
+
+    x86 double     34 gflops
+    x86 float      34 gflops
+    SSE2 double
+    SSE2 float
+    CUDA double   167 gflops
+    CUDA float   3485 gflops
 
 As mentioned earlier, the CPU implementations were parallelized using OpenMP, so the CPU implementations use all available cores. Calculations were verified to scale linearly with core count. This was expected as the calculations are compute bound and have no interdependencies.
 

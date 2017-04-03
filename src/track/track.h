@@ -242,6 +242,6 @@ class Track
   FractalSpec& GetFractalSpec();
   TemporalPalette& GetTemporalPalette();
 
-  void Load(const boost::filesystem::wpath& archive_path);
-  void Save(const boost::filesystem::wpath& archive_path);
+  void Load(const boost::filesystem::path& archive_path);
+  void Save(const boost::filesystem::path& archive_path);
 };

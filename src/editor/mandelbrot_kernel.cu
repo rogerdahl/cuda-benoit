@@ -1,12 +1,13 @@
-#include "mandelbrot_kernel.h"
-// Full relative path needed because .cu compiler ignores Visual Studio
-// additional include directories.
-#include "../../lib/int_types.h"
-
 #include <iostream>
-using namespace std;
+
 #include <cuda_runtime_api.h>
-#include <ZZcutil.h>
+
+#include "mandelbrot_kernel.h"
+#include "int_types.h"
+
+
+using namespace std;
+
 
 cudaStream_t stream;
 unsigned int timer_gpu;

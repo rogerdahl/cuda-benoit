@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 project(cuda_benoit)
-#set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
@@ -16,11 +16,21 @@ message(STATUS "Found CUDA version: ${CUDA_VERSION}")
 
 find_package(
   Boost 1.58.0 EXACT REQUIRED COMPONENTS
-  program_options
-  system
   filesystem
+  program_options
   serialization
+  system
+  thread
 )
+
+#set(wxWidgets_CONFIGURATION wxgtk)
+find_package(wxWidgets COMPONENTS core base REQUIRED)
+
+find_package(OpenMP)
+if (OPENMP_FOUND)
+  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
 
 set(
   CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};
@@ -29,13 +39,32 @@ set(
   -gencode arch=compute_35,code=sm_35
   -std=c++11;
 )
+
+message(WARNING "${wxWidgets_DEFINITIONS_DEBUG}")
+message(WARNING "${wxWidgets_DEFINITIONS}")
+message(WARNING "${wxWidgets_CONFIGURATION}")
+
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -g -G -O0)
   message(WARNING "Building DEBUG version: ${CUDA_NVCC_FLAGS}")
+  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -g -G -O0)
+#  add_definitions(${wxWidgets_DEFINITIONS_DEBUG})
 else()
-  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -O3)
   message(WARNING "Building RELEASE version: ${CUDA_NVCC_FLAGS}")
+  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -O3)
+#  add_definitions(${wxWidgets_DEFINITIONS})
 endif()
+
+add_definitions(${wxWidgets_CONFIGURATION})
+
+include("${wxWidgets_USE_FILE}")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${wxWidgets_CXX_FLAGS} -Wall -Wfatal-errors -Wno-deprecated-declarations"
+)
+
+message(WARNING "${CMAKE_CXX_FLAGS}")
+
+#set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ${wxWidgets_CXX_FLAGS} -Wall -Wfatal-errors -Wno-deprecated-declarations"
+#  )
 
 set(CMAKE_CXX_STANDARD 14)
 
@@ -46,14 +75,17 @@ include_directories(
   ${SRC_PLAYER_DIR}
   ${SRC_TRACK_DIR}
   ${Boost_INCLUDE_DIRS}
+  ${wxWidgets_INCLUDE_DIRS}
 )
 
 link_directories(
   ${Boost_LIBRARY_DIRS}
+  ${wxWidgets_LIBRARY_DIRS}
 )
 
 link_libraries(
   ${Boost_LIBRARIES}
+  ${wxWidgets_LIBRARIES}
   GLEW
   glut
   GL
@@ -72,3 +104,20 @@ cuda_add_executable(
   ${SRC_TRACK_DIR}/pch.cpp
   ${SRC_TRACK_DIR}/track.cpp
 )
+
+cuda_add_executable(
+  editor
+  ${SRC_EDITOR_DIR}/bailout_dlg.cpp
+  ${SRC_EDITOR_DIR}/calc.cpp
+  ${SRC_EDITOR_DIR}/cpu_info.cpp
+  ${SRC_EDITOR_DIR}/cpuid.cpp
+  ${SRC_EDITOR_DIR}/main.cpp
+  ${SRC_EDITOR_DIR}/mandelbrot_kernel.cu
+  ${SRC_EDITOR_DIR}/palette_ctrl.cpp
+  ${SRC_EDITOR_DIR}/pch.cpp
+  ${SRC_EDITOR_DIR}/render_ctrl.cpp
+  ${SRC_EDITOR_DIR}/sse2_x64_mandelbrot.asm
+  ${SRC_EDITOR_DIR}/utils.h
+  ${SRC_TRACK_DIR}/track.cpp
+)
+

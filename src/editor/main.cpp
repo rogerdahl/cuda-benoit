@@ -92,10 +92,10 @@ class MyFrame : public wxFrame
   wxMenu* supersample_menu;
   wxMenu* misc_menu;
   bool unsaved_changes_;
-  wpath track_path_;
+  path track_path_;
 
   void Refresh();
-  void SetTrackStatus(bool unsaved_changes, wpath track_path);
+  void SetTrackStatus(bool unsaved_changes, path track_path);
   void UnsavedChanges();
   void UpdateZoomValues();
 
@@ -391,8 +391,8 @@ MyFrame::MyFrame(const wxString& title)
   // as the first argument when the app is opened by double clicking a track
   // file.
   if (wxTheApp->argc > 1) {
-    track_.Load(wxTheApp->argv[1]);
-    SetTrackStatus(false, wxTheApp->argv[1]);
+    track_.Load(path(wxTheApp->argv[1]));
+    SetTrackStatus(false, path(wxTheApp->argv[1]));
     Refresh();
   }
   //// For profiling, do automatic stuff here.
@@ -517,8 +517,8 @@ void MyFrame::OnOpen(wxCommandEvent& event)
   if (d.ShowModal() != wxID_OK) {
     return;
   }
-  track_.Load(d.GetPath().c_str());
-  SetTrackStatus(false, d.GetPath().c_str());
+  track_.Load(path(d.GetPath()));
+  SetTrackStatus(false, path(d.GetPath()));
   Refresh();
 }
 
@@ -541,8 +541,8 @@ void MyFrame::OnSaveAs(wxCommandEvent& event)
   if (d.ShowModal() != wxID_OK) {
     return;
   }
-  track_.Save(d.GetPath().c_str());
-  SetTrackStatus(false, d.GetPath().c_str());
+  track_.Save(path(d.GetPath()));
+  SetTrackStatus(false, path(d.GetPath()));
 }
 
 // Edit menu.
@@ -582,7 +582,7 @@ void MyFrame::OnFractalPosChange(wxScrollEvent& event)
   render_ctrl_->SetPos(pos_norm);
 }
 
-void MyFrame::SetTrackStatus(bool unsaved_changes, wpath track_path)
+void MyFrame::SetTrackStatus(bool unsaved_changes, path track_path)
 {
   unsaved_changes_ = unsaved_changes;
   track_path_ = track_path;

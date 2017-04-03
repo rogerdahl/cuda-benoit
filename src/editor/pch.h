@@ -9,6 +9,7 @@
 // wx
 //#include <wx/msw/setup.h>
 #include <wx/wx.h>
+#include <wx/artprov.h>
 //#include <wx/event.h>
 //#include <wx/menu.h>
 //#include <wx/app.h>
@@ -58,10 +59,6 @@
 
 // CUDA
 #include <cuda_runtime.h>
-#include <ZZcutil.h>
-//#include <cutil_math.h>
-#include <ZZcutil_inline_runtime.h>
-//#include <cuda_runtime.h>
 
 //#define _CRT_SECURE_NO_WARNINGS
 // xmm support for visual studio
