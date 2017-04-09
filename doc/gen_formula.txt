@@ -1,0 +1,5 @@
+http://frog.isima.fr/bruno/share/tex2png/
+
+$$samplepos = \frac{log(\frac{1}{zoomend})}{log(zoomstep)}$$
+
+$$zoomend = e^{- samplepos * log(zoomstep)}$$

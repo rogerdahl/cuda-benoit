@@ -119,7 +119,7 @@ The easiest way to create a track consists of these steps:
 
 ### What is a log scale map?
 
-<img align="right" width="60%" src="./doc/log_map.jpg">
+<img align="right" width="40%" src="./doc/log_map.jpg">
 
 This is a photo taken on a pier. Imagine that the pier was infinitely long. The point into which the walkway would seem to disappear in the distance is called the vanishing point.
 
@@ -409,11 +409,11 @@ Saving images is not supported. There are many, many, *many* apps out there that
 * The track files (.benoit) are XML files. They can be opened and edited in a text editor.
 * The basic formula for the log scale transform is:
 
-    $$samplepos = \frac{log(\frac{1}{zoomend})}{log(zoomstep)}$$
+    <img src="./doc/log_scale_transform_formula_1.png">
 
     Solving for zoomend:
 
-    $$zoomend = e^{- samplepos * log(zoomstep)}$$
+    <img src="./doc/log_scale_transform_formula_2.png">
 
 ## TODO
 
