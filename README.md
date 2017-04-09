@@ -1,6 +1,6 @@
 # CUDA Benoit
 
-Realtime, high resolution, high iteration, supersampled, Mandelbrot fractal zoom using a novel calculation technique called a log scale map\_.
+Realtime, high resolution, high iteration, supersampled, Mandelbrot fractal zoom using a novel calculation technique called a [log scale map](#what-is-a-log-scale-map).
 
 Log scale maps enable realtime rendering of fractal zooms of higher quality than what is possible using the traditional calculation methods implemented by almost all fractal zoom generators (including GPU based ones).
 
@@ -29,13 +29,13 @@ To start the player with the default tracks and default configuration, download 
 
 If you get error *CUDA driver version is insufficient for CUDA runtime version*, try updating your graphics card driver.
 
-If you get error *The application has failed to start because its side-by-side configuration is incorrect*, double-click the included vcredist\_x64.exe file and follow the prompts. You only have to do this once.
+If you get error *The application has failed to start because its side-by-side configuration is incorrect*, double-click the included vcredist_x64.exe file and follow the prompts. You only have to do this once.
 
 If you get error *Not a valid Win32 application*, note that this app currently supports only 64 bit Windows. If you get this error on a 64 bit version of Windows, please let me know.
 
 During playback, click to pause and right-click to view the log scale map. In the log scale map, all four sides of a fractal box are lined up on a single line.
 
-If the target machine has a high end graphics card that is less powerful than a GTX 570, it may still be able to run the player with satisfactory rendering quality and frame rate by modifying the player's configuration file. See the configuration file\_ section for details on how to edit the file for optimal rendering quality on your machine.
+If the target machine has a high end graphics card that is less powerful than a GTX 570, it may still be able to run the player with satisfactory rendering quality and frame rate by modifying the player's configuration file. See the [configuration file](#configuring-the-player) section for details on how to edit the file for optimal rendering quality on your machine.
 
 If the target machine has a graphics card that is significantly faster than the GTX 570, it may be desirable to modify the player configuration to take advantage of the extra processing power. Again, refer to the configuration file section.
 
@@ -147,7 +147,7 @@ Example: Most LCD monitors run at 60 Hz. That gives the graphics card 16.7ms to 
 
 The player can display timing information during playback to make configuration easier. See the **timers** setting below.
 
-A setting can be set to its default value by prepending it with a hash mark ("\#").
+A setting can be set to its default value by prepending it with a hash mark ("#").
 
 > **warning**
 >
@@ -184,14 +184,14 @@ Note: Graphics driver issues may cause this parameter to cause stuttering even w
     vsync_interval = 1
 
 **fullscreen**: When turned on, the entire screen is used. If the screen width
-and height\_ is not set to match the physical resolution of the screen, the track is stretched or compressed to match the screen.
+and height is not set to match the physical resolution of the screen, the track is stretched or compressed to match the screen.
 
     fullscreen = 1 # fill the screen with the track (recommended)
     fullscreen = 0 # show in window
 
 **screen width and height**: Sets the display resolution of the track. It is recommended that these be set to match the physical resolution of the screen. Any resolution that is supported by the graphics card and monitor can be specified.
 
-These settings can be used for playing back tracks in full screen with cards that would otherwise not be able to play them. For instance, if the screen resolution is 1920x1080, the workload can be reduced to a quarter by setting a resolution of 960x540. Of course, the result is a blurry image. It may be preferable to show the player in a window instead, by turning off the fullscreen\_ option.
+These settings can be used for playing back tracks in full screen with cards that would otherwise not be able to play them. For instance, if the screen resolution is 1920x1080, the workload can be reduced to a quarter by setting a resolution of 960x540. Of course, the result is a blurry image. It may be preferable to show the player in a window instead, by turning off the `fullscreen` option.
 
     # 1920x1080 (16:9)
     screen_w = 1920
@@ -211,7 +211,7 @@ Other steps can be specified -- they are not limited to the provided examples. H
     zoom_step = 1.01    # fast
     zoom_step = 1.1     # warp 10
 
-**transform\_ss\_x and transform\_ss\_y**: Specify supersampling anti-aliasing (SSAA) parameters for the log scale transform. If these are set to values higher than 1, each pixel that is drawn on screen becomes the average of a higher number of actually calculated pixels. To get the number of calculated pixels per displayed pixel, multiply the two transform\_ss numbers. For instance, setting both values to 3 gives 9xSSAA.
+**transform_ss_x and transform_ss_y**: Specify supersampling anti-aliasing (SSAA) parameters for the log scale transform. If these are set to values higher than 1, each pixel that is drawn on screen becomes the average of a higher number of actually calculated pixels. To get the number of calculated pixels per displayed pixel, multiply the two `transform_ss` numbers. For instance, setting both values to 3 gives 9xSSAA.
 
 3x3 gives significantly better quality than 2x2. It seems like the two odd numbers help reduce moire patterns created in the log scale transform.
 
@@ -222,11 +222,11 @@ Recommended (if your graphics card can handle it): 3x3
     transform_ss_x = 3
     transform_ss_y = 3
 
-**fractal\_box\_ss**: Specify supersampling anti-aliasing (SSAA) parameters for the fractal boxes. This parameter specifies supersampling performed on the fractal escape times. Setting this to a value higher than 1 causes multiple escape times to be calculated and the values stored in the the fractal boxes become averages of these values. See the description for **boxes per frame** for more information on this parameter.
+**fractal_box_ss**: Specify supersampling anti-aliasing (SSAA) parameters for the fractal boxes. This parameter specifies supersampling performed on the fractal escape times. Setting this to a value higher than 1 causes multiple escape times to be calculated and the values stored in the the fractal boxes become averages of these values. See the description for **boxes per frame** for more information on this parameter.
 
-The cost of increasing this parameter may not be linear. For instance, with a screen size of 1920x1080, the size of a fractal box is 2 \* 1920 + 2 \* 1080 = 6000 escape times. This again causes 6000 threads to be launched on the GPU. A GTX 570 has 480 cores, which gives 12.5 threads per core. This is not enough to hide computational latency, even when the cores are running double precision calculations (see the single precision\_ setting). The result is that it may be possible to increase this value without any apparent cost. Unfortunately, the improvement in rendering quality is also fairly marginal.
+The cost of increasing this parameter may not be linear. For instance, with a screen size of 1920x1080, the size of a fractal box is 2 * 1920 + 2 * 1080 = 6000 escape times. This again causes 6000 threads to be launched on the GPU. A GTX 570 has 480 cores, which gives 12.5 threads per core. This is not enough to hide computational latency, even when the cores are running double precision calculations (see the `single precision` setting). The result is that it may be possible to increase this value without any apparent cost. Unfortunately, the improvement in rendering quality is also fairly marginal.
 
-In general, if it is found that fractal\_box\_ss does increase kernel time, it is better to add boxes per frame\_ than extra fractal box supersampling. The two options increase the number of required calculations in the same way. For instance, increasing fractal\_box\_ss from 1 to 2 doubles the number of Mandelbrot escape times that must be calculated, and so does increasing boxes per frame from 1 to 2.
+In general, if it is found that fractal_box_ss does increase kernel time, it is better to add boxes per frame than extra fractal box supersampling. The two options increase the number of required calculations in the same way. For instance, increasing fractal_box_ss from 1 to 2 doubles the number of Mandelbrot escape times that must be calculated, and so does increasing boxes per frame from 1 to 2.
 
     fractal_box_ss = 1
 
@@ -258,9 +258,9 @@ Normal range: 100 - 10000.
 In general:
 
     Fermi: GTX 4xx / 5xx
-    Kepler: GTX 6xx
-    Maxwell: GTX 7xx, 9xx
-    Pascal: GTX 9xx, 10xx
+    Kepler: GTX 6xx, 7xx
+    Maxwell: GTX 9xx
+    Pascal: GTX 10xx
 
 It's necessary to use single precision on the later architectures because they have fewer double precision floating point ALUs.
 
@@ -279,11 +279,11 @@ Log scale transformations calculated per frame:
 
 ## Implementation notes for the player
 
-The source code for the player is \~2000 lines of well documented C++ and CUDA C. An effort has been made to make the code readable. I am happy to answer any questions about the code.
+The source code for the player is ~2000 lines of well documented C++ and CUDA C. An effort has been made to make the code readable. I am happy to answer any questions about the code.
 
 ### Performance
 
-This figure shows kernel execution times in microseconds for two frames rendered in the player with 1920x1080 display resolution, 9xSSAA (supersampling), bailout 2000, 3 fractal boxes per frame and escape times calculated with double precision. As can be observed, the transform takes \~8000us, which is half of the available time when rendering at 60 FPS. Each of the fractal boxes take \~1400us, 4200us total. Leaving around 4400us for the other kernels, overhead and safety margin, to meet the 60 FPS deadline.
+This figure shows kernel execution times in microseconds for two frames rendered in the player with 1920x1080 display resolution, 9xSSAA (supersampling), bailout 2000, 3 fractal boxes per frame and escape times calculated with double precision. As can be observed, the transform takes ~8000us, which is half of the available time when rendering at 60 FPS. Each of the fractal boxes take ~1400us, 4200us total. Leaving around 4400us for the other kernels, overhead and safety margin, to meet the 60 FPS deadline.
 
 <img align="right" width="60%" src="./doc/player_plot_small.png">
 
@@ -312,7 +312,7 @@ $ make
 
 #### Moiré pattern
 
-<img align="right" width="60%" src="./doc/moire_small.png">
+<img align="right" width="40%" src="./doc/moire_small.png">
 
 The main factor that reduces rendering quality in the player is a Moiré pattern that is visible when rendering certain combinations of fractal data and palettes. The pattern is created in the log scale transform and I *think* it's caused by an inaccurate (but very fast) implementation of `log` on the GPU.
 
@@ -343,7 +343,7 @@ Care has been taken to make tracks render in the player just as they appear when
 
 ## Implementation notes for the editor
 
-The source code for the editor is \~4400 lines of fairly well documented C++. An effort has been made to make the code readable. I am happy to answer any questions about the code.
+The source code for the editor is ~4400 lines of fairly well documented C++. An effort has been made to make the code readable. I am happy to answer any questions about the code.
 
 ### Performance
 
@@ -363,7 +363,7 @@ The Mandelbrot escape time calculation methods included are:
 
 The CPU implementations were all parallelized using OpenMP.
 
-An interesting observation that can be made from viewing the different implementations is the big difference in level of complexity between the CUDA and the SSE implementations. The SSE implementations had to be written in assembly (or by using assembly intrinsics). The fact that the number of iterations in the loop vary for each escape time calculation has to be handled manually by masking techniques. In addition, the loop must be bracketed by code that first packs the starting values into XMM registers and unpacks the results afterwards. In contrast, the CUDA implementation of the escape time calculation loop looks like the plain C++ implementation. In other words, not only does the CUDA implementation of the Mandelbrot escape time calculation run much faster (see Benchmark\_), it also saved a lot of developer time.
+An interesting observation that can be made from viewing the different implementations is the big difference in level of complexity between the CUDA and the SSE implementations. The SSE implementations had to be written in assembly (or by using assembly intrinsics). The fact that the number of iterations in the loop vary for each escape time calculation has to be handled manually by masking techniques. In addition, the loop must be bracketed by code that first packs the starting values into XMM registers and unpacks the results afterwards. In contrast, the CUDA implementation of the escape time calculation loop looks like the plain C++ implementation. In other words, not only does the CUDA implementation of the Mandelbrot escape time calculation run much faster, it also saved a lot of developer time.
 
 #### Benchmarks
 
@@ -402,7 +402,7 @@ Observations:
 
 #### Saving images
 
-Saving images is not supported. There are many, many, *many* apps out there that are far superior for generating static fractal images. However, a possible workaround is to configure the player for very high rendering quality (no longer realtime), and then use *print screen* to take a snapshot at the right moment. Another alternative is to save the track, open the .benoit file in a text editor, read out the center\_r and center\_i values, plug those into another app and use them for finding the area.
+Saving images is not supported. There are many, many, *many* apps out there that are far superior for generating static fractal images. However, a possible workaround is to configure the player for very high rendering quality (no longer realtime), and then use *print screen* to take a snapshot at the right moment. Another alternative is to save the track, open the .benoit file in a text editor, read out the center_r and center_i values, plug those into another app and use them for finding the area.
 
 ### Misc
 
@@ -424,4 +424,4 @@ Saving images is not supported. There are many, many, *many* apps out there that
 
 ## Image credit
 
-The image used in What is a log scale map?\_ is part of photo called *Embarcadero Pier, San Francisco 2005*. It was taken by Chris Gulker.
+The image used in [What is a log scale map?](#what-is-a-log-scale-map) is part of photo called *Embarcadero Pier, San Francisco 2005*. It was taken by Chris Gulker.
