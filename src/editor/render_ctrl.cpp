@@ -289,11 +289,11 @@ u8* RenderCtrl::GetReducedFractalBuf()
     return 0;
   }
   auto_ptr<vector<u32> > reduced_fractal_buf(new vector<u32>(width_ * height_));
-  u32* reduced_fractal_buf_ptr(&(*reduced_fractal_buf.get())[0]);
+//  u32* reduced_fractal_buf_ptr(&(*reduced_fractal_buf.get())[0]);
 
   Color* palette_ptr;
-  size_t palette_size(palette.size());
-  assert(palette_size);
+//  size_t palette_size(palette.size());
+//  assert(palette_size);
   palette_ptr = &palette[0];
 
   u32 c(supersample_ * supersample_);
@@ -320,7 +320,7 @@ u8* RenderCtrl::GetReducedFractalBuf()
       for (yr = 0; yr < static_cast<s32>(supersample_); ++yr) {
         for (xr = 0; xr < static_cast<s32>(supersample_); ++xr) {
           iter = fractal_buf_ptr[src_off + xr];
-          if (iter == -1) {
+          if (iter == static_cast<u32>(-1)) {
             iter = 0;
           }
           r += palette_ptr[iter].red_;

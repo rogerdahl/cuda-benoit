@@ -34,7 +34,7 @@ StaticTracks* ReadTracks(const path& track_dir_path)
            << endl;
       break;
     }
-    if (is_regular_file(*itr) && itr->path().extension() == ".doc") {
+    if (is_regular_file(*itr) && itr->path().extension() == ".benoit") {
       try {
         TrackToStatic(*itr, tracks->tracks_[track_idx++]);
       } catch (std::exception&) {
@@ -46,7 +46,7 @@ StaticTracks* ReadTracks(const path& track_dir_path)
 
   // If a bailout value has been specified in the configuration file, use it as
   // the shared bailout value.
-  if (g_cfg.bailout_ != -1) {
+  if (g_cfg.bailout_ != static_cast<u32>(-1)) {
     tracks->shared_bailout_ = g_cfg.bailout_;
     return tracks;
   }

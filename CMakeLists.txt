@@ -14,6 +14,7 @@ message(STATUS "Found CUDA version: ${CUDA_VERSION}")
 #set(BUILD_SHARED_LIBS OFF)
 #set(CUDA_SEPARABLE_COMPILATION ON)
 
+#set(Boost_USE_STATIC_LIBS   ON)
 find_package(
   Boost 1.58.0 EXACT REQUIRED COMPONENTS
   filesystem
@@ -40,17 +41,16 @@ set(
   -std=c++11;
 )
 
-message(WARNING "${wxWidgets_DEFINITIONS_DEBUG}")
-message(WARNING "${wxWidgets_DEFINITIONS}")
-message(WARNING "${wxWidgets_CONFIGURATION}")
+#message(WARNING "${wxWidgets_DEFINITIONS_DEBUG}")
+#message(WARNING "${wxWidgets_DEFINITIONS}")
+#message(WARNING "${wxWidgets_CONFIGURATION}")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  message(WARNING "Building DEBUG version: ${CUDA_NVCC_FLAGS}")
-  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -g -G -O0)
+  message(WARNING "Building DEBUG version")
+  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -g -G -O0 -Wall)
 #  add_definitions(${wxWidgets_DEFINITIONS_DEBUG})
 else()
-  message(WARNING "Building RELEASE version: ${CUDA_NVCC_FLAGS}")
-  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -O3)
+  message(WARNING "Building RELEASE version")
 #  add_definitions(${wxWidgets_DEFINITIONS})
 endif()
 
@@ -58,13 +58,15 @@ add_definitions(${wxWidgets_CONFIGURATION})
 
 include("${wxWidgets_USE_FILE}")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${wxWidgets_CXX_FLAGS} -Wall -Wfatal-errors -Wno-deprecated-declarations"
+set(CMAKE_CXX_FLAGS
+  "${CMAKE_CXX_FLAGS} ${wxWidgets_CXX_FLAGS} -Wall -Werror -Wfatal-errors -Wno-deprecated-declarations"
 )
 
-message(WARNING "${CMAKE_CXX_FLAGS}")
-
-#set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ${wxWidgets_CXX_FLAGS} -Wall -Wfatal-errors -Wno-deprecated-declarations"
-#  )
+# Experimenting with building a statically linked binary that will run out of the
+# box on more Linux distros.
+#set(CMAKE_CXX_FLAGS
+#  "${CMAKE_CXX_FLAGS} -static"
+#)
 
 set(CMAKE_CXX_STANDARD 14)
 
@@ -121,3 +123,5 @@ cuda_add_executable(
   ${SRC_TRACK_DIR}/track.cpp
 )
 
+message(WARNING "CUDA_NVCC_FLAGS: ${CUDA_NVCC_FLAGS}")
+message(WARNING "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")

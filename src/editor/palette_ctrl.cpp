@@ -417,8 +417,6 @@ void TemporalPaletteCtrl::OnLeftDown(wxMouseEvent& event)
   u32 palette_slider_start(palette_start);
   u32 palette_strip_start(palette_slider_start + slider_height + PALETTE_SPACE);
   u32 temporal_slider_start(palette_strip_start + strip_height + PALETTE_SPACE);
-  u32 temporal_strip_start(
-      temporal_slider_start + slider_height + PALETTE_SPACE);
 
   // If click was within slider_area.
   wxRect slider_area(0, palette_slider_start, width, slider_height);
@@ -567,8 +565,6 @@ void TemporalPaletteCtrl::OnRightDown(wxMouseEvent& event)
   u32 palette_slider_start(palette_start);
   u32 palette_strip_start(palette_slider_start + slider_height + PALETTE_SPACE);
   u32 temporal_slider_start(palette_strip_start + strip_height + PALETTE_SPACE);
-  u32 temporal_strip_start(
-      temporal_slider_start + slider_height + PALETTE_SPACE);
 
   // Hit test with top slider first.
   //

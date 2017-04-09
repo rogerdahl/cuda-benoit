@@ -133,7 +133,7 @@ void BailoutDialog::OnOk(wxCommandEvent& event)
 
 void BailoutDialog::OnCancel(wxCommandEvent& event)
 {
-  if (bailout_slider_->GetValue() != bailout_) {
+  if (static_cast<u32>(bailout_slider_->GetValue()) != bailout_) {
     GenerateChangedEvent(bailout_);
   }
   Hide();

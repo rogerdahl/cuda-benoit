@@ -54,7 +54,7 @@ void GLDeviceInit(s32 device)
   }
   checkCudaErrors(cudaGLSetGLDevice(device));
 }
-//
+
 //// General GPU Device CUDA Initialization
 // int gpuDeviceInit(int devID)
 //{
@@ -81,7 +81,7 @@ void GLDeviceInit(s32 device)
 //  checkCudaErrors( cudaGetDeviceProperties(&deviceProp, devID) );
 //  if (deviceProp.major < 1) {
 //    fprintf(stderr, "gpuDeviceInit(): GPU device does not support CUDA.\n");
-//    exit(-1);                                                  \
+//    exit(-1);
 //  }
 //
 //  checkCudaErrors( cudaSetDevice(devID) );

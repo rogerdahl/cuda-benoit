@@ -1,5 +1,4 @@
 //#pragma once
-//#pragma message("Compiling PCH - Should only happen once per project")
 
 //#define _CRT_SECURE_NO_WARNINGS
 

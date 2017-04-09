@@ -188,7 +188,6 @@ bool InitCUDA(int argc, char** argv)
 void CreateAndRegisterTex(
     GLuint& tex, cudaGraphicsResource*& resource, u32 w, u32 h)
 {
-  u32 i(0);
   uchar4* buf((uchar4*)malloc(w * h * sizeof(uchar4)));
   glGenTextures(1, &tex);
   glBindTexture(GL_TEXTURE_2D, tex);
