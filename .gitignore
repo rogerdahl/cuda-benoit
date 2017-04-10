@@ -5,6 +5,15 @@ libraries/
 releases/
 .idea/
 
+# CUDA
+
+*.i
+*.ii
+*.gpu
+*.ptx
+*.cubin
+*.fatbin
+
 # C++
 
 # Prerequisites
@@ -39,11 +48,3 @@ releases/
 *.exe
 *.out
 *.app
-
-# CUDA
-*.i
-*.ii
-*.gpu
-*.ptx
-*.cubin
-*.fatbin

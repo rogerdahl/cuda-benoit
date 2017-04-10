@@ -47,7 +47,7 @@ set(
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   message(WARNING "Building DEBUG version")
-  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -g -G -O0 -Wall)
+  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -g -G -O0)
 #  add_definitions(${wxWidgets_DEFINITIONS_DEBUG})
 else()
   message(WARNING "Building RELEASE version")
